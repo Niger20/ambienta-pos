@@ -3,6 +3,8 @@ export * from './auth/register-user-dto';
 export * from './auth/update-user-dto';
 export * from './categoria-cliente/create-categoria-cliente.dto';
 export * from './categoria-cliente/update-categoria-cliente.dto';
+export * from './cliente/create-cliente-dto';
+export * from './cliente/update-cliente-dto';
 export * from './shared/pagination.dto';
 export * from './unidad-medida/create-unidad-medida.dto';
 export * from './unidad-medida/update-unidad-medida.dto';
