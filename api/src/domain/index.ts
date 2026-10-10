@@ -4,6 +4,7 @@ export * from './entitites/cliente.entity';
 export * from './entitites/productCategory.entity';
 export * from './entitites/productSubcategory.entity';
 export * from './entitites/producto.entity';
+export * from './entitites/proveedor.entity';
 export * from './entitites/unidad-medida.entity';
 export * from './entitites/user.entity';
 export * from './enums/user-role';

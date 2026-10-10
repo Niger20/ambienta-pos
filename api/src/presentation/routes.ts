@@ -3,6 +3,7 @@ import { AutorizacionGateway } from "../config/ws.adapter";
 import { buildAuthMiddleware } from "../infrastructure/factories/auth.middleware.factory";
 import { CategoriaProductoRoutes } from "./categoria-productos/routes";
 import { SubcategoriaProductoRoutes } from "./subcategoria-productos/routes";
+import { ProveedoresRoutes } from "./proveedores/routes";
 import { ClientesRoutes } from "./clientes/routes";
 import { ProductosRoutes } from "./producto/routes";
 import { AuthRoutes } from "./auth/routes";
@@ -18,6 +19,7 @@ export class AppRoutes {
 
         router.use('/api/categoria-productos', [authMiddleware.validateJWT.bind(authMiddleware)], CategoriaProductoRoutes.routes);
         router.use('/api/subcategoria-productos', [authMiddleware.validateJWT.bind(authMiddleware)], SubcategoriaProductoRoutes.routes);
+        router.use('/api/proveedores', [authMiddleware.validateJWT.bind(authMiddleware)], ProveedoresRoutes.routes);
         router.use('/api/clientes', [authMiddleware.validateJWT.bind(authMiddleware)], ClientesRoutes.routes);
         router.use('/api/productos', [authMiddleware.validateJWT.bind(authMiddleware)], ProductosRoutes.routes);
         router.use('/api/auth', AuthRoutes.routes);
