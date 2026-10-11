@@ -5,6 +5,8 @@ export * from './entitites/compra.entity';
 export * from './entitites/compraProducto.entity';
 export * from './entitites/movimientoCompra.entity';
 export * from './entitites/movimientoInventario.entity';
+export * from './entitites/orden-compra-producto.entity';
+export * from './entitites/orden-compra.entity';
 export * from './entitites/productCategory.entity';
 export * from './entitites/productSubcategory.entity';
 export * from './entitites/producto.entity';
