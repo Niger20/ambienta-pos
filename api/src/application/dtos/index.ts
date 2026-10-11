@@ -11,6 +11,8 @@ export * from './cliente/create-cliente-dto';
 export * from './cliente/update-cliente-dto';
 export * from './producto/create-producto-dto';
 export * from './producto/update-producto-dto';
+export * from './proveedor/create-proveedor-dto';
+export * from './proveedor/update-proveedor-dto';
 export * from './shared/pagination.dto';
 export * from './unidad-medida/create-unidad-medida.dto';
 export * from './unidad-medida/update-unidad-medida.dto';
