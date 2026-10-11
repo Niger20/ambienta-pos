@@ -13,6 +13,7 @@ import { MovimientosInventarioRoutes } from "./movimientosInventario/routes";
 import { MovimientosComprasRoutes } from "./movimientosCompras/routes";
 import { UnidadesMedidaRoutes } from "./unidades-medida/routes";
 import { CategoriasClientesRoutes } from "./categorias-clientes/routes";
+import { CostosAdicionalesComprasRoutes } from "./costos-adicionales-compras/routes";
 import { OrdenesCompraRoutes } from "./ordenes-compra/routes";
 import { OrdenesCompraProductosRoutes } from "./ordenes-compra-productos/routes";
 
@@ -35,6 +36,7 @@ export class AppRoutes {
         router.use('/api/movimientos-compras', [authMiddleware.validateJWT.bind(authMiddleware)], MovimientosComprasRoutes.routes);
         router.use('/api/unidades-medida', [authMiddleware.validateJWT.bind(authMiddleware)], UnidadesMedidaRoutes.routes);
         router.use('/api/categorias-clientes', [authMiddleware.validateJWT.bind(authMiddleware)], CategoriasClientesRoutes.routes);
+        router.use('/api/costos-adicionales-compras', [authMiddleware.validateJWT.bind(authMiddleware)], CostosAdicionalesComprasRoutes.routes);
         router.use('/api/ordenes-compra', [authMiddleware.validateJWT.bind(authMiddleware)], OrdenesCompraRoutes.routes);
         router.use('/api/ordenes-compra-productos', [authMiddleware.validateJWT.bind(authMiddleware)], OrdenesCompraProductosRoutes.routes);
 

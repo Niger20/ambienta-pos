@@ -12,6 +12,8 @@ export * from './cliente/update-cliente-dto';
 export * from './compra/create-compra-dto';
 export * from './compra/update-compra-dto';
 export * from './compraProducto/create-compraProducto-dto';
+export * from './costo-adicional-compra/create-costo-adicional-compra.dto';
+export * from './costo-adicional-compra/update-costo-adicional-compra.dto';
 export * from './movimientoCompra/create-movimientoCompra-dto';
 export * from './movimientoInventario/create-movimientoInventario-dto';
 export * from './orden-compra/create-orden-compra.dto';
