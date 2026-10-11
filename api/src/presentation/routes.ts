@@ -7,6 +7,10 @@ import { ProveedoresRoutes } from "./proveedores/routes";
 import { ClientesRoutes } from "./clientes/routes";
 import { ProductosRoutes } from "./producto/routes";
 import { AuthRoutes } from "./auth/routes";
+import { ComprasRoutes } from "./compras/routes";
+import { ComprasProductosRoutes } from "./comprasProductos/routes";
+import { MovimientosInventarioRoutes } from "./movimientosInventario/routes";
+import { MovimientosComprasRoutes } from "./movimientosCompras/routes";
 import { UnidadesMedidaRoutes } from "./unidades-medida/routes";
 import { CategoriasClientesRoutes } from "./categorias-clientes/routes";
 
@@ -23,6 +27,10 @@ export class AppRoutes {
         router.use('/api/clientes', [authMiddleware.validateJWT.bind(authMiddleware)], ClientesRoutes.routes);
         router.use('/api/productos', [authMiddleware.validateJWT.bind(authMiddleware)], ProductosRoutes.routes);
         router.use('/api/auth', AuthRoutes.routes);
+        router.use('/api/compras', [authMiddleware.validateJWT.bind(authMiddleware)], ComprasRoutes.routes);
+        router.use('/api/compras-productos', [authMiddleware.validateJWT.bind(authMiddleware)], ComprasProductosRoutes.routes);
+        router.use('/api/movimientos-inventario', [authMiddleware.validateJWT.bind(authMiddleware)], MovimientosInventarioRoutes.routes);
+        router.use('/api/movimientos-compras', [authMiddleware.validateJWT.bind(authMiddleware)], MovimientosComprasRoutes.routes);
         router.use('/api/unidades-medida', [authMiddleware.validateJWT.bind(authMiddleware)], UnidadesMedidaRoutes.routes);
         router.use('/api/categorias-clientes', [authMiddleware.validateJWT.bind(authMiddleware)], CategoriasClientesRoutes.routes);
 
