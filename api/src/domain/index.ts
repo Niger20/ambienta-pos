@@ -3,6 +3,7 @@ export * from './entitites/categoria-cliente.entity';
 export * from './entitites/cliente.entity';
 export * from './entitites/compra.entity';
 export * from './entitites/compraProducto.entity';
+export * from './entitites/configuracion-inss.entity';
 export * from './entitites/costo-adicional-compra.entity';
 export * from './entitites/delivery.entity';
 export * from './entitites/devolucion.entity';
