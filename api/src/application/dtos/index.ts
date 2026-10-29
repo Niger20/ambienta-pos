@@ -20,6 +20,7 @@ export * from './imagen-producto/create-imagen-producto.dto';
 export * from './imagen-producto/update-imagen-producto.dto';
 export * from './movimientoCompra/create-movimientoCompra-dto';
 export * from './movimientoInventario/create-movimientoInventario-dto';
+export * from './movimientoVenta/create-movimientoVenta-dto';
 export * from './orden-compra/create-orden-compra.dto';
 export * from './orden-compra/update-orden-compra.dto';
 export * from './orden-compra-producto/create-orden-compra-producto.dto';

@@ -8,6 +8,7 @@ export * from './entitites/delivery.entity';
 export * from './entitites/imagen-producto.entity';
 export * from './entitites/movimientoCompra.entity';
 export * from './entitites/movimientoInventario.entity';
+export * from './entitites/movimientoVenta.entity';
 export * from './entitites/orden-compra-producto.entity';
 export * from './entitites/orden-compra.entity';
 export * from './entitites/productCategory.entity';
