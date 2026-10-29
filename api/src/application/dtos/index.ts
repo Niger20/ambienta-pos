@@ -32,6 +32,8 @@ export * from './orden-compra/create-orden-compra.dto';
 export * from './orden-compra/update-orden-compra.dto';
 export * from './orden-compra-producto/create-orden-compra-producto.dto';
 export * from './orden-compra-producto/update-orden-compra-producto.dto';
+export * from './pago/create-pago-dto';
+export * from './pago/update-pago-dto';
 export * from './producto/create-producto-dto';
 export * from './producto/update-producto-dto';
 export * from './proveedor/create-proveedor-dto';

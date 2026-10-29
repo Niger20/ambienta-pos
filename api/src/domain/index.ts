@@ -14,6 +14,7 @@ export * from './entitites/movimientoInventario.entity';
 export * from './entitites/movimientoVenta.entity';
 export * from './entitites/orden-compra-producto.entity';
 export * from './entitites/orden-compra.entity';
+export * from './entitites/pago.entity';
 export * from './entitites/productCategory.entity';
 export * from './entitites/productSubcategory.entity';
 export * from './entitites/producto.entity';
