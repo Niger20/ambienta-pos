@@ -8,6 +8,7 @@ import { ClientesRoutes } from "./clientes/routes";
 import { RepartidorRoutes } from "./repartidor/routes";
 import { ProductosRoutes } from "./producto/routes";
 import { AuthRoutes } from "./auth/routes";
+import { DeliveryRoutes } from "./delivery/routes";
 import { ComprasRoutes } from "./compras/routes";
 import { ComprasProductosRoutes } from "./comprasProductos/routes";
 import { MovimientosInventarioRoutes } from "./movimientosInventario/routes";
@@ -33,6 +34,7 @@ export class AppRoutes {
         router.use('/api/repartidores', [authMiddleware.validateJWT.bind(authMiddleware)], RepartidorRoutes.routes);
         router.use('/api/productos', [authMiddleware.validateJWT.bind(authMiddleware)], ProductosRoutes.routes);
         router.use('/api/auth', AuthRoutes.routes);
+        router.use('/api/deliveries', [authMiddleware.validateJWT.bind(authMiddleware)], DeliveryRoutes.routes);
         router.use('/api/compras', [authMiddleware.validateJWT.bind(authMiddleware)], ComprasRoutes.routes);
         router.use('/api/compras-productos', [authMiddleware.validateJWT.bind(authMiddleware)], ComprasProductosRoutes.routes);
         router.use('/api/movimientos-inventario', [authMiddleware.validateJWT.bind(authMiddleware)], MovimientosInventarioRoutes.routes);

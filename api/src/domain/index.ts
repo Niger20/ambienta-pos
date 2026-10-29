@@ -5,6 +5,8 @@ export * from './entitites/compra.entity';
 export * from './entitites/compraProducto.entity';
 export * from './entitites/costo-adicional-compra.entity';
 export * from './entitites/imagen-producto.entity';
+export * from './entitites/delivery.entity';
+export * from './entitites/imagen-producto.entity';
 export * from './entitites/movimientoCompra.entity';
 export * from './entitites/movimientoInventario.entity';
 export * from './entitites/orden-compra-producto.entity';
