@@ -1,3 +1,5 @@
+export * from './abono/create-abono-dto';
+export * from './abono/update-abono-dto';
 export * from './auth/login-user-dto';
 export * from './auth/register-user-dto';
 export * from './auth/update-user-dto';
@@ -16,6 +18,8 @@ export * from './configuracion-inss/create-configuracion-inss.dto';
 export * from './configuracion-inss/update-configuracion-inss.dto';
 export * from './costo-adicional-compra/create-costo-adicional-compra.dto';
 export * from './costo-adicional-compra/update-costo-adicional-compra.dto';
+export * from './cuentaPorCobrar/create-cuentaPorCobrar-dto';
+export * from './cuentaPorCobrar/update-cuentaPorCobrar-dto';
 export * from './cuentaPorPagar/create-cuentaPorPagar-dto';
 export * from './cuentaPorPagar/update-cuentaPorPagar-dto';
 export * from './delivery/create-delivery-dto';
