@@ -20,6 +20,8 @@ import { ComprasProductosRoutes } from "./comprasProductos/routes";
 import { MovimientosInventarioRoutes } from "./movimientosInventario/routes";
 import { MovimientosComprasRoutes } from "./movimientosCompras/routes";
 import { MovimientosVentasRoutes } from "./movimientosVentas/routes";
+import { CuentasPorPagarRoutes } from "./cuentasPorPagar/routes";
+import { PagoCuentasPorPagarRoutes } from "./pagoCuentasPorPagar/routes";
 import { UnidadesMedidaRoutes } from "./unidades-medida/routes";
 import { DevolucionesRoutes } from "./devoluciones/routes";
 import { MermasRoutes } from "./mermas/routes";
@@ -57,6 +59,8 @@ export class AppRoutes {
         router.use('/api/movimientos-inventario', [authMiddleware.validateJWT.bind(authMiddleware)], MovimientosInventarioRoutes.routes);
         router.use('/api/movimientos-compras', [authMiddleware.validateJWT.bind(authMiddleware)], MovimientosComprasRoutes.routes);
         router.use('/api/movimientos-ventas', [authMiddleware.validateJWT.bind(authMiddleware)], MovimientosVentasRoutes.routes);
+        router.use('/api/cuentas-por-pagar', [authMiddleware.validateJWT.bind(authMiddleware)], CuentasPorPagarRoutes.routes);
+        router.use('/api/pago-cuentas-por-pagar', [authMiddleware.validateJWT.bind(authMiddleware)], PagoCuentasPorPagarRoutes.routes);
         router.use('/api/unidades-medida', [authMiddleware.validateJWT.bind(authMiddleware)], UnidadesMedidaRoutes.routes);
         router.use('/api/devoluciones', [authMiddleware.validateJWT.bind(authMiddleware)], DevolucionesRoutes.routes);
         router.use('/api/mermas', [authMiddleware.validateJWT.bind(authMiddleware)], MermasRoutes.routes);
