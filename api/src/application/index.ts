@@ -3,12 +3,11 @@ export * from './datasources/categoria-cliente.datasource';
 export * from './datasources/cliente.datasource';
 export * from './datasources/compra.datasource';
 export * from './datasources/compraProducto.datasource';
-<<<<<<< Updated upstream
-=======
+export * from './datasources/costo-adicional-compra.datasource';
+export * from './datasources/imagen-producto.datasource';
 export * from './datasources/costo-adicional-compra.datasource';
 export * from './datasources/delivery.datasource';
 export * from './datasources/imagen-producto.datasource';
->>>>>>> Stashed changes
 export * from './datasources/movimientoCompra.datasource';
 export * from './datasources/movimientoInventario.datasource';
 export * from './datasources/orden-compra-producto.datasource';
@@ -17,18 +16,18 @@ export * from './datasources/productCategory.datasource';
 export * from './datasources/productSubcategory.datasource';
 export * from './datasources/producto.datasource';
 export * from './datasources/proveedor.datasource';
+export * from './datasources/repartidor.datasource';
 export * from './datasources/unidad-medida.datasource';
 export * from './datasources/user.datasource';
 export * from './repositories/categoria-cliente.repository';
 export * from './repositories/cliente.repository';
 export * from './repositories/compra.repository';
 export * from './repositories/compraProducto.repository';
-<<<<<<< Updated upstream
-=======
+export * from './repositories/costo-adicional-compra.repository';
+export * from './repositories/imagen-producto.repository';
 export * from './repositories/costo-adicional-compra.repository';
 export * from './repositories/delivery.repository';
 export * from './repositories/imagen-producto.repository';
->>>>>>> Stashed changes
 export * from './repositories/movimientoCompra.repository';
 export * from './repositories/movimientoInventario.repository';
 export * from './repositories/orden-compra-producto.repository';
@@ -37,6 +36,7 @@ export * from './repositories/productCategory.repository';
 export * from './repositories/productSubcategory.repository';
 export * from './repositories/producto.repository';
 export * from './repositories/proveedor.repository';
+export * from './repositories/repartidor.repository';
 export * from './repositories/unidad-medida.repository';
 export * from './repositories/user.repository';
 export * from './use-cases/auth/delete-user';
@@ -66,8 +66,6 @@ export * from './use-cases/compra/update-compra';
 export * from './use-cases/compraProducto/create-compraProducto';
 export * from './use-cases/compraProducto/get-compraProducto';
 export * from './use-cases/compraProducto/getByCompraId-compraProducto';
-<<<<<<< Updated upstream
-=======
 export * from './use-cases/costo-adicional-compra/create-costo-adicional-compra';
 export * from './use-cases/costo-adicional-compra/delete-costo-adicional-compra';
 export * from './use-cases/costo-adicional-compra/get-costo-adicional-compra';
@@ -84,7 +82,6 @@ export * from './use-cases/imagen-producto/delete-imagen-producto';
 export * from './use-cases/imagen-producto/get-imagen-producto';
 export * from './use-cases/imagen-producto/getById-imagen-producto';
 export * from './use-cases/imagen-producto/update-imagen-producto';
->>>>>>> Stashed changes
 export * from './use-cases/movimientoCompra/create-movimientoCompra';
 export * from './use-cases/movimientoCompra/delete-movimientoCompra';
 export * from './use-cases/movimientoCompra/get-movimientoCompra';
@@ -128,6 +125,11 @@ export * from './use-cases/proveedor/delete-proveedor';
 export * from './use-cases/proveedor/get-proveedor';
 export * from './use-cases/proveedor/getById-proveedor';
 export * from './use-cases/proveedor/update-proveedor';
+export * from './use-cases/repartidor/create-repartidor';
+export * from './use-cases/repartidor/delete-repartidor';
+export * from './use-cases/repartidor/get-repartidor';
+export * from './use-cases/repartidor/getById-repartidor';
+export * from './use-cases/repartidor/update-repartidor';
 export * from './use-cases/unidad-medida/create-unidad-medida';
 export * from './use-cases/unidad-medida/delete-unidad-medida';
 export * from './use-cases/unidad-medida/get-unidad-medida';
