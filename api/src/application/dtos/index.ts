@@ -27,6 +27,8 @@ export * from './delivery/update-delivery-dto';
 export * from './devolucion/create-devolucion.dto';
 export * from './devolucion/procesar-devolucion.dto';
 export * from './devolucion/update-devolucion.dto';
+export * from './empleado/create-empleado.dto';
+export * from './empleado/update-empleado.dto';
 export * from './empresa/create-empresa-dto';
 export * from './empresa/update-empresa-dto';
 export * from './gasto/create-gasto-dto';

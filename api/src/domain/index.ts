@@ -10,6 +10,7 @@ export * from './entitites/cuentaPorCobrar.entity';
 export * from './entitites/cuentaPorPagar.entity';
 export * from './entitites/delivery.entity';
 export * from './entitites/devolucion.entity';
+export * from './entitites/empleado.entity';
 export * from './entitites/empresa.entity';
 export * from './entitites/gasto.entity';
 export * from './entitites/imagen-producto.entity';
