@@ -14,6 +14,13 @@ export * from './compra/update-compra-dto';
 export * from './compraProducto/create-compraProducto-dto';
 export * from './costo-adicional-compra/create-costo-adicional-compra.dto';
 export * from './costo-adicional-compra/update-costo-adicional-compra.dto';
+<<<<<<< Updated upstream
+=======
+export * from './delivery/create-delivery-dto';
+export * from './delivery/update-delivery-dto';
+export * from './imagen-producto/create-imagen-producto.dto';
+export * from './imagen-producto/update-imagen-producto.dto';
+>>>>>>> Stashed changes
 export * from './movimientoCompra/create-movimientoCompra-dto';
 export * from './movimientoInventario/create-movimientoInventario-dto';
 export * from './orden-compra/create-orden-compra.dto';
