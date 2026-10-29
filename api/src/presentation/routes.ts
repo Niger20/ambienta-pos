@@ -15,6 +15,8 @@ import { VentasRoutes } from "./ventas/routes";
 import { VentaDeliveryRoutes } from "./ventaDelivery/routes";
 import { VentaProductoRoutes } from "./ventaProductos/routes";
 import { VentaPagosRoutes } from "./venta-pagos/routes";
+import { GastosRoutes } from "./gastos/routes";
+import { PagoGastosRoutes } from "./pagoGastos/routes";
 import { ComprasRoutes } from "./compras/routes";
 import { ComprasProductosRoutes } from "./comprasProductos/routes";
 import { MovimientosInventarioRoutes } from "./movimientosInventario/routes";
@@ -56,6 +58,8 @@ export class AppRoutes {
         router.use('/api/venta-delivery', [authMiddleware.validateJWT.bind(authMiddleware)], VentaDeliveryRoutes.routes);
         router.use('/api/venta-productos', [authMiddleware.validateJWT.bind(authMiddleware)], VentaProductoRoutes.routes);
         router.use('/api/venta-pagos', [authMiddleware.validateJWT.bind(authMiddleware)], VentaPagosRoutes.routes);
+        router.use('/api/gastos', [authMiddleware.validateJWT.bind(authMiddleware)], GastosRoutes.routes);
+        router.use('/api/pago-gastos', [authMiddleware.validateJWT.bind(authMiddleware)], PagoGastosRoutes.routes);
         router.use('/api/compras', [authMiddleware.validateJWT.bind(authMiddleware)], ComprasRoutes.routes);
         router.use('/api/compras-productos', [authMiddleware.validateJWT.bind(authMiddleware)], ComprasProductosRoutes.routes);
         router.use('/api/movimientos-inventario', [authMiddleware.validateJWT.bind(authMiddleware)], MovimientosInventarioRoutes.routes);
