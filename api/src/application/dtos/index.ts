@@ -41,6 +41,8 @@ export * from './repartidor/update-repartidor-dto';
 export * from './sesion/close-sesion-dto';
 export * from './sesion/open-sesion-dto';
 export * from './shared/pagination.dto';
+export * from './tabla-tramo-ir/create-tabla-tramo-ir.dto';
+export * from './tabla-tramo-ir/update-tabla-tramo-ir.dto';
 export * from './unidad-medida/create-unidad-medida.dto';
 export * from './unidad-medida/update-unidad-medida.dto';
 export * from './venta/checkout-venta-dto';
