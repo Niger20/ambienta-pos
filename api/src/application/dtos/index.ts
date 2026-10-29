@@ -21,6 +21,8 @@ export * from './devolucion/procesar-devolucion.dto';
 export * from './devolucion/update-devolucion.dto';
 export * from './imagen-producto/create-imagen-producto.dto';
 export * from './imagen-producto/update-imagen-producto.dto';
+export * from './merma/create-merma.dto';
+export * from './merma/update-merma.dto';
 export * from './movimientoCompra/create-movimientoCompra-dto';
 export * from './movimientoInventario/create-movimientoInventario-dto';
 export * from './movimientoVenta/create-movimientoVenta-dto';
