@@ -20,4 +20,6 @@ export * from './entitites/unidad-medida.entity';
 export * from './entitites/user.entity';
 export * from './entitites/venta-pago.entity';
 export * from './entitites/venta.entity';
+export * from './entitites/ventaDelivery.entity';
+export * from './entitites/ventaProducto.entity';
 export * from './enums/user-role';
