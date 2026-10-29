@@ -18,4 +18,6 @@ export * from './entitites/repartidor.entity';
 export * from './entitites/sesion.entity';
 export * from './entitites/unidad-medida.entity';
 export * from './entitites/user.entity';
+export * from './entitites/venta-pago.entity';
+export * from './entitites/venta.entity';
 export * from './enums/user-role';

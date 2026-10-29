@@ -35,3 +35,8 @@ export * from './sesion/open-sesion-dto';
 export * from './shared/pagination.dto';
 export * from './unidad-medida/create-unidad-medida.dto';
 export * from './unidad-medida/update-unidad-medida.dto';
+export * from './venta/checkout-venta-dto';
+export * from './venta/create-venta-dto';
+export * from './venta/update-venta-dto';
+export * from './venta-pago/create-venta-pago.dto';
+export * from './venta-pago/update-venta-pago.dto';
