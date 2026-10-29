@@ -1,7 +1,8 @@
 import { useEffect } from 'react';
+import { BrowserRouter } from 'react-router-dom';
+import { AuthProvider } from './context/AuthContext';
+import AppRouter from './router/AppRouter';
 
-// Versión técnica de la etapa 001: aplica el tema guardado y muestra una pantalla de transición.
-// El router, la autenticación y los módulos se incorporan en las etapas siguientes.
 function App() {
   useEffect(() => {
     const savedTheme = localStorage.getItem('app-theme') || 'dark';
@@ -9,10 +10,11 @@ function App() {
   }, []);
 
   return (
-    <main style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', padding: '1rem', textAlign: 'center' }}>
-      <h1 style={{ fontSize: '1.5rem', fontWeight: 700 }}>Ambienta POS</h1>
-      <p style={{ color: 'var(--text-secondary)' }}>Reconstrucción por etapas del frontend: estructura inicial.</p>
-    </main>
+    <BrowserRouter>
+      <AuthProvider>
+        <AppRouter />
+      </AuthProvider>
+    </BrowserRouter>
   );
 }
 
