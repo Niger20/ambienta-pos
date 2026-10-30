@@ -1,5 +1,6 @@
 export * from './entitites/abono.entity';
 export * from './entitites/autorizacion.entity';
+export * from './entitites/cargo-empleado.entity';
 export * from './entitites/categoria-cliente.entity';
 export * from './entitites/cliente.entity';
 export * from './entitites/compra.entity';

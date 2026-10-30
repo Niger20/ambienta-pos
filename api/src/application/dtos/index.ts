@@ -3,6 +3,8 @@ export * from './abono/update-abono-dto';
 export * from './auth/login-user-dto';
 export * from './auth/register-user-dto';
 export * from './auth/update-user-dto';
+export * from './cargo-empleado/create-cargo-empleado.dto';
+export * from './cargo-empleado/update-cargo-empleado.dto';
 export * from './categoria-cliente/create-categoria-cliente.dto';
 export * from './categoria-cliente/update-categoria-cliente.dto';
 export * from './categoria-productos/create-productCategory-dto';
