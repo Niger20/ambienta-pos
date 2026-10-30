@@ -36,6 +36,8 @@ import { OrdenesCompraRoutes } from "./ordenes-compra/routes";
 import { OrdenesCompraProductosRoutes } from "./ordenes-compra-productos/routes";
 import { ImagenesProductosRoutes } from "./imagenes-productos/routes";
 import { EmpleadosRoutes } from "./empleados/routes";
+import { DepartamentosEmpleadosRoutes } from "./departamentos-empleados/routes";
+import { CargosEmpleadosRoutes } from "./cargos-empleados/routes";
 import { ConfiguracionInssRoutes } from "./configuracion-inss/routes";
 import { TablaTramoIrRoutes } from "./tabla-tramo-ir/routes";
 
@@ -81,6 +83,8 @@ export class AppRoutes {
         router.use('/api/ordenes-compra-productos', [authMiddleware.validateJWT.bind(authMiddleware)], OrdenesCompraProductosRoutes.routes);
         router.use('/api/imagenes-productos', [authMiddleware.validateJWT.bind(authMiddleware)], ImagenesProductosRoutes.routes);
         router.use('/api/empleados', [authMiddleware.validateJWT.bind(authMiddleware)], EmpleadosRoutes.routes);
+        router.use('/api/departamentos-empleados', [authMiddleware.validateJWT.bind(authMiddleware)], DepartamentosEmpleadosRoutes.routes);
+        router.use('/api/cargos-empleados', [authMiddleware.validateJWT.bind(authMiddleware)], CargosEmpleadosRoutes.routes);
         router.use('/api/configuracion-inss', [authMiddleware.validateJWT.bind(authMiddleware)], ConfiguracionInssRoutes.routes);
         router.use('/api/tabla-tramo-ir', [authMiddleware.validateJWT.bind(authMiddleware)], TablaTramoIrRoutes.routes);
 
