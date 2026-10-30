@@ -24,6 +24,8 @@ export * from './cuentaPorPagar/create-cuentaPorPagar-dto';
 export * from './cuentaPorPagar/update-cuentaPorPagar-dto';
 export * from './delivery/create-delivery-dto';
 export * from './delivery/update-delivery-dto';
+export * from './departamento-empleado/create-departamento-empleado.dto';
+export * from './departamento-empleado/update-departamento-empleado.dto';
 export * from './devolucion/create-devolucion.dto';
 export * from './devolucion/procesar-devolucion.dto';
 export * from './devolucion/update-devolucion.dto';

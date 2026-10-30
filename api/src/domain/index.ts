@@ -9,6 +9,7 @@ export * from './entitites/costo-adicional-compra.entity';
 export * from './entitites/cuentaPorCobrar.entity';
 export * from './entitites/cuentaPorPagar.entity';
 export * from './entitites/delivery.entity';
+export * from './entitites/departamento-empleado.entity';
 export * from './entitites/devolucion.entity';
 export * from './entitites/empleado.entity';
 export * from './entitites/empresa.entity';
