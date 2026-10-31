@@ -1,5 +1,6 @@
 export * from './entitites/abono.entity';
 export * from './entitites/autorizacion.entity';
+export * from './entitites/cargo-empleado.entity';
 export * from './entitites/categoria-cliente.entity';
 export * from './entitites/cliente.entity';
 export * from './entitites/compra.entity';
@@ -9,6 +10,7 @@ export * from './entitites/costo-adicional-compra.entity';
 export * from './entitites/cuentaPorCobrar.entity';
 export * from './entitites/cuentaPorPagar.entity';
 export * from './entitites/delivery.entity';
+export * from './entitites/departamento-empleado.entity';
 export * from './entitites/devolucion.entity';
 export * from './entitites/empleado.entity';
 export * from './entitites/empresa.entity';
