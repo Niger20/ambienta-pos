@@ -65,6 +65,7 @@ const Sidebar = ({ isOpen, onClose, collapsed }: {
     const rol = user?.rol;
     const nombre = user?.nombreusuario || 'Usuario';
 
+    const isAtLeastEmpleado = rol === 'administrador' || rol === 'empleado';
 
     // Generate initials from name
     const initials = nombre
@@ -92,6 +93,13 @@ const Sidebar = ({ isOpen, onClose, collapsed }: {
                 {/* General — all roles */}
                 <NavSection label="General" collapsed={collapsed} />
                 <SidebarLink to="/"          label="Inicio"         icon={icons.dashboard}  onClose={onClose} collapsed={collapsed} />
+                {/* Gestión — admin & empleado */}
+                {isAtLeastEmpleado && (
+                    <>
+                        <NavSection label="Gestión" collapsed={collapsed} />
+                        <SidebarLink to="/products"   label="Productos"     icon={icons.products}   onClose={onClose} collapsed={collapsed} />
+                    </>
+                )}
             </nav>
 
             {/* ── User Footer ── */}
