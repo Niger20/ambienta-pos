@@ -54,6 +54,8 @@ export * from './pago/create-pago-dto';
 export * from './pago/update-pago-dto';
 export * from './pagoCuentaPorPagar/create-pagoCuentaPorPagar-dto';
 export * from './pagoGasto/create-pagoGasto-dto';
+export * from './periodo-planilla/create-periodo-planilla.dto';
+export * from './periodo-planilla/update-periodo-planilla.dto';
 export * from './prestamo-empleado/create-prestamo-empleado.dto';
 export * from './prestamo-empleado/update-prestamo-empleado.dto';
 export * from './producto/create-producto-dto';

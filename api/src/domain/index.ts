@@ -26,6 +26,7 @@ export * from './entitites/orden-compra.entity';
 export * from './entitites/pago.entity';
 export * from './entitites/pagoCuentaPorPagar.entity';
 export * from './entitites/pagoGasto.entity';
+export * from './entitites/periodo-planilla.entity';
 export * from './entitites/prestamo-empleado.entity';
 export * from './entitites/productCategory.entity';
 export * from './entitites/productSubcategory.entity';
