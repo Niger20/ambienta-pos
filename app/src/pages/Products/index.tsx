@@ -1,20 +1,33 @@
 import type { Subcategory } from './types';
 import { useState } from 'react';
+import { useAuth } from '../../context/AuthContext';
 import { useAuthorizedAction, AuthorizationModal } from '../../components/auth';
-import { IconBox, IconTag, IconPlus } from './icons';
+import { IconBarcode, IconBox, IconTag, IconHistory, IconMerma, IconFilePdf, IconDownload, IconUpload, IconPlus, IconRefresh } from './icons';
 import { useProductsData } from './useProductsData';
 import { useProductCrud } from './useProductCrud';
 import { useCategoryCrud } from './useCategoryCrud';
 import { useSubcategoryCrud } from './useSubcategoryCrud';
 import { useProductsFilters } from './useProductsFilters';
 import { useCategoriesFilters } from './useCategoriesFilters';
+import { useMovimientos } from './useMovimientos';
+import { useMermas } from './useMermas';
+import { useBarcodesTab } from './useBarcodesTab';
+import { useExcelImport } from './useExcelImport';
+import { useInventoryReports } from './useInventoryReports';
 import { ProductsTab } from './ProductsTab';
 import { CategoriesTab } from './CategoriesTab';
+import { MovimientosTab } from './MovimientosTab';
+import { MermasTab } from './MermasTab';
+import { BarcodesTab } from './BarcodesTab';
 import { ProductModal } from './ProductModal';
 import { CategoryModal } from './CategoryModal';
 import { SubcategoryModal } from './SubcategoryModal';
+import { AjusteModal } from './AjusteModal';
+import { MermaModal } from './MermaModal';
+import { CatAssignModal } from './CatAssignModal';
 
 const Products = () => {
+    const { user } = useAuth();
     const { requestAuth, authModalProps } = useAuthorizedAction();
     const [activeTab, setActiveTab] = useState('products');
 
@@ -65,6 +78,12 @@ const Products = () => {
         openCreateSubcategoryModal, editSubcategory, deleteSubcategory, handleSaveSubcategory,
     } = useSubcategoryCrud(categories, fetchData, requestAuth);
 
+    const movimientos = useMovimientos(products, fetchData, requestAuth);
+    const mermas = useMermas(products, user?.id, fetchData, requestAuth);
+    const barcodes = useBarcodesTab(products);
+    const excelImport = useExcelImport(categories, fetchData);
+    const { exportInventarioPDF, handleRecalculateStockMinimo } = useInventoryReports(products, user?.nombreusuario, fetchData, requestAuth);
+
     return (
         <>
             <div className="page-container">
@@ -74,6 +93,92 @@ const Products = () => {
                         <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Organizar productos y categorías.</p>
                     </div>
                     <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                        {excelImport.importProgress && (
+                            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginRight: '0.5rem' }}>
+                                Importando... {excelImport.importProgress.done}/{excelImport.importProgress.total}
+                            </span>
+                        )}
+                        {activeTab === 'products' && (
+                            <button
+                                className="btn"
+                                onClick={exportInventarioPDF}
+                                title="Exportar inventario completo en PDF"
+                                style={{
+                                    backgroundColor: 'var(--accent-primary-bg)',
+                                    color: 'var(--accent-primary)',
+                                    border: '1px solid var(--accent-primary)',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: 'var(--radius-md)',
+                                    fontWeight: 600
+                                }}
+                            >
+                                <IconFilePdf />
+                                <span>Exportar PDF</span>
+                            </button>
+                        )}
+                        {activeTab === 'products' && (
+                            <button
+                                className="btn"
+                                onClick={handleRecalculateStockMinimo}
+                                title="Recalcular stock mínimo de todos los productos basándose en el historial de ventas"
+                                style={{
+                                    backgroundColor: 'var(--accent-primary-bg)',
+                                    color: 'var(--accent-primary)',
+                                    border: '1px solid var(--accent-primary)',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '0.5rem',
+                                    padding: '0.5rem 1rem',
+                                    borderRadius: 'var(--radius-md)',
+                                    fontWeight: 600
+                                }}
+                            >
+                                <IconRefresh />
+                                <span>Stock Mínimo Automático</span>
+                            </button>
+                        )}
+                        <button
+                            className="btn"
+                            onClick={excelImport.downloadProductTemplate}
+                            title="Descargar plantilla Excel"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem 1rem',
+                                borderRadius: 'var(--radius-md)',
+                                border: '1px solid var(--border-color)',
+                                backgroundColor: 'var(--bg-card)',
+                                color: 'var(--text-primary)',
+                                fontWeight: 500
+                            }}
+                        >
+                            <IconDownload />
+                            <span>Plantilla Excel</span>
+                        </button>
+                        <button
+                            className="btn"
+                            onClick={() => excelImport.excelInputRef.current?.click()}
+                            title="Importar Excel"
+                            style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '0.5rem',
+                                padding: '0.5rem 1rem',
+                                borderRadius: 'var(--radius-md)',
+                                border: '1px solid var(--border-color)',
+                                backgroundColor: 'var(--bg-card)',
+                                color: 'var(--text-primary)',
+                                fontWeight: 500
+                            }}
+                        >
+                            <IconUpload />
+                            <span>Importar Excel</span>
+                        </button>
+                        <input ref={excelImport.excelInputRef} type="file" accept=".xlsx,.xls,.csv" style={{ display: 'none' }} onChange={excelImport.handleProductExcelUpload} />
                         <button
                             className="btn btn-primary"
                             onClick={openCreateProductModal}
@@ -97,6 +202,9 @@ const Products = () => {
                     {[
                         { tab: 'products', label: 'Productos', icon: IconBox },
                         { tab: 'categories', label: 'Categorías', icon: IconTag },
+                        { tab: 'movimientos', label: 'Movimientos', icon: IconHistory },
+                        { tab: 'mermas', label: 'Mermas / Quiebres', icon: IconMerma },
+                        { tab: 'barcodes', label: 'Códigos de Barra', icon: IconBarcode }
                     ].map(item => {
                         const TabIcon = item.icon;
                         const isActive = activeTab === item.tab;
@@ -104,7 +212,11 @@ const Products = () => {
                             <button
                                 key={item.tab}
                                 className={`btn ${isActive ? 'btn-primary' : ''}`}
-                                onClick={() => setActiveTab(item.tab)}
+                                onClick={() => {
+                                    setActiveTab(item.tab);
+                                    if (item.tab === 'movimientos') movimientos.fetchMovimientos();
+                                    if (item.tab === 'mermas') mermas.fetchMermas();
+                                }}
                                 style={{
                                     padding: '0.6rem 1.2rem',
                                     fontSize: '0.85rem',
@@ -128,7 +240,34 @@ const Products = () => {
                 </div>
 
                 <div className="card">
-                    {activeTab === 'products' ? (
+                    {activeTab === 'barcodes' ? (
+                        <BarcodesTab
+                            includeNameInPdf={barcodes.includeNameInPdf}
+                            setIncludeNameInPdf={barcodes.setIncludeNameInPdf}
+                            includePriceInPdf={barcodes.includePriceInPdf}
+                            setIncludePriceInPdf={barcodes.setIncludePriceInPdf}
+                            generateBulkPDF={barcodes.generateBulkPDF}
+                            selectedBarcodes={barcodes.selectedBarcodes}
+                            setSelectedBarcodes={barcodes.setSelectedBarcodes}
+                            barcodeSearch={barcodes.barcodeSearch}
+                            setBarcodeSearch={barcodes.setBarcodeSearch}
+                            barcodeCategoryFilter={barcodes.barcodeCategoryFilter}
+                            setBarcodeCategoryFilter={barcodes.setBarcodeCategoryFilter}
+                            categories={categories}
+                            products={products}
+                            filteredBarcodeProducts={barcodes.filteredBarcodeProducts}
+                            selectAllVisible={barcodes.selectAllVisible}
+                            deselectAll={barcodes.deselectAll}
+                            toggleSelectAll={barcodes.toggleSelectAll}
+                            printSingleLabel={barcodes.printSingleLabel}
+                            labelPresetId={barcodes.labelPresetId}
+                            setLabelPresetId={barcodes.setLabelPresetId}
+                            customLabelConfig={barcodes.customLabelConfig}
+                            updateCustomLabelConfig={barcodes.updateCustomLabelConfig}
+                            activeLabelConfig={barcodes.activeLabelConfig}
+                            labelGridLayout={barcodes.labelGridLayout}
+                        />
+                    ) : activeTab === 'products' ? (
                         <ProductsTab
                             productSearchQuery={productSearchQuery}
                             setProductSearchQuery={setProductSearchQuery}
@@ -166,8 +305,55 @@ const Products = () => {
                             onEditSubcategory={editSubcategory}
                             onDeleteSubcategory={deleteSubcategory}
                         />
+                    ) : activeTab === 'movimientos' ? (
+                        <MovimientosTab
+                            movSearch={movimientos.movSearch}
+                            setMovSearch={movimientos.setMovSearch}
+                            onOpenAjusteModal={movimientos.openAjusteModal}
+                            movLoading={movimientos.movLoading}
+                            filteredGroups={movimientos.filteredGroups}
+                            totalMovGroupsPages={movimientos.totalMovGroupsPages}
+                            paginatedGroups={movimientos.paginatedGroups}
+                            movPage={movimientos.movPage}
+                            setMovPage={movimientos.setMovPage}
+                            expandedProductId={movimientos.expandedProductId}
+                            setExpandedProductId={movimientos.setExpandedProductId}
+                            exportMovimientosPDF={movimientos.exportMovimientosPDF}
+                            movimientosPages={movimientos.movimientosPages}
+                            setMovimientosPages={movimientos.setMovimientosPages}
+                        />
+                    ) : activeTab === 'mermas' ? (
+                        <MermasTab
+                            mermaSearch={mermas.mermaSearch}
+                            setMermaSearch={mermas.setMermaSearch}
+                            onOpenMermaModal={mermas.openMermaModal}
+                            mermasLoading={mermas.mermasLoading}
+                            filteredMermas={mermas.filteredMermas}
+                            paginatedMermas={mermas.paginatedMermas}
+                            mermaPage={mermas.mermaPage}
+                            setMermaPage={mermas.setMermaPage}
+                            totalMermaPages={mermas.totalMermaPages}
+                            onDeleteMerma={mermas.handleDeleteMerma}
+                        />
                     ) : null}
                 </div>
+
+                <MermaModal
+                    show={mermas.showMermaModal}
+                    form={mermas.mermaForm}
+                    setForm={mermas.setMermaForm}
+                    onSubmit={mermas.handleCreateMerma}
+                    onClose={() => mermas.setShowMermaModal(false)}
+                    products={products}
+                    productSearch={mermas.mermaProductSearch}
+                    setProductSearch={mermas.setMermaProductSearch}
+                    showProductDropdown={mermas.showMermaProductDropdown}
+                    setShowProductDropdown={mermas.setShowMermaProductDropdown}
+                    destinoSearch={mermas.mermaDestinoSearch}
+                    setDestinoSearch={mermas.setMermaDestinoSearch}
+                    showDestinoDropdown={mermas.showMermaDestinoDropdown}
+                    setShowDestinoDropdown={mermas.setShowMermaDestinoDropdown}
+                />
 
                 <ProductModal
                     show={isProductModalOpen}
@@ -205,7 +391,30 @@ const Products = () => {
                     onSubmit={handleSaveSubcategory}
                     onCancel={() => setIsSubcategoryModalOpen(false)}
                 />
+
+                <AjusteModal
+                    show={movimientos.showAjusteModal}
+                    form={movimientos.ajusteForm}
+                    setForm={movimientos.setAjusteForm}
+                    onSubmit={movimientos.handleCreateAjuste}
+                    onClose={() => movimientos.setShowAjusteModal(false)}
+                    products={products}
+                    productSearch={movimientos.ajusteProductSearch}
+                    setProductSearch={movimientos.setAjusteProductSearch}
+                    showProductDropdown={movimientos.showAjusteProductDropdown}
+                    setShowProductDropdown={movimientos.setShowAjusteProductDropdown}
+                />
             </div>
+
+            <CatAssignModal
+                show={excelImport.showCatAssign}
+                pendingProducts={excelImport.pendingProducts}
+                catAssignMap={excelImport.catAssignMap}
+                setCatAssignMap={excelImport.setCatAssignMap}
+                categories={categories}
+                onCancel={() => { excelImport.setShowCatAssign(false); }}
+                onConfirm={excelImport.handleConfirmCatAssign}
+            />
 
             <AuthorizationModal {...authModalProps} />
         </>
