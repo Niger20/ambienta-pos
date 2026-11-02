@@ -35,6 +35,7 @@ export * from './entitites/productCategory.entity';
 export * from './entitites/productSubcategory.entity';
 export * from './entitites/producto.entity';
 export * from './entitites/proveedor.entity';
+export * from './entitites/registro-asistencia.entity';
 export * from './entitites/repartidor.entity';
 export * from './entitites/sesion.entity';
 export * from './entitites/tabla-tramo-ir.entity';

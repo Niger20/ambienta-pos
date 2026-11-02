@@ -68,6 +68,8 @@ export * from './producto/create-producto-dto';
 export * from './producto/update-producto-dto';
 export * from './proveedor/create-proveedor-dto';
 export * from './proveedor/update-proveedor-dto';
+export * from './registro-asistencia/create-registro-asistencia.dto';
+export * from './registro-asistencia/update-registro-asistencia.dto';
 export * from './repartidor/create-repartidor-dto';
 export * from './repartidor/update-repartidor-dto';
 export * from './sesion/close-sesion-dto';
