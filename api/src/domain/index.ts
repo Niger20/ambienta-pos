@@ -38,6 +38,7 @@ export * from './entitites/proveedor.entity';
 export * from './entitites/registro-asistencia.entity';
 export * from './entitites/repartidor.entity';
 export * from './entitites/sesion.entity';
+export * from './entitites/solicitud-vacaciones.entity';
 export * from './entitites/tabla-tramo-ir.entity';
 export * from './entitites/unidad-medida.entity';
 export * from './entitites/user.entity';
