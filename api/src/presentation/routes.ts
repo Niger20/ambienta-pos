@@ -40,6 +40,7 @@ import { DepartamentosEmpleadosRoutes } from "./departamentos-empleados/routes";
 import { CargosEmpleadosRoutes } from "./cargos-empleados/routes";
 import { HistorialSalariosRoutes } from "./historial-salarios/routes";
 import { PeriodosPlanillaRoutes } from "./periodos-planilla/routes";
+import { PlanillaDetalleRoutes } from "./planilla-detalle/routes";
 import { PrestamosEmpleadosRoutes } from "./prestamos-empleados/routes";
 import { ConfiguracionInssRoutes } from "./configuracion-inss/routes";
 import { TablaTramoIrRoutes } from "./tabla-tramo-ir/routes";
@@ -90,6 +91,7 @@ export class AppRoutes {
         router.use('/api/cargos-empleados', [authMiddleware.validateJWT.bind(authMiddleware)], CargosEmpleadosRoutes.routes);
         router.use('/api/historial-salarios', [authMiddleware.validateJWT.bind(authMiddleware)], HistorialSalariosRoutes.routes);
         router.use('/api/periodos-planilla', [authMiddleware.validateJWT.bind(authMiddleware)], PeriodosPlanillaRoutes.routes);
+        router.use('/api/planilla-detalle', [authMiddleware.validateJWT.bind(authMiddleware)], PlanillaDetalleRoutes.routes);
         router.use('/api/prestamos-empleados', [authMiddleware.validateJWT.bind(authMiddleware)], PrestamosEmpleadosRoutes.routes);
         router.use('/api/configuracion-inss', [authMiddleware.validateJWT.bind(authMiddleware)], ConfiguracionInssRoutes.routes);
         router.use('/api/tabla-tramo-ir', [authMiddleware.validateJWT.bind(authMiddleware)], TablaTramoIrRoutes.routes);
