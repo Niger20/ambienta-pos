@@ -29,6 +29,7 @@ export * from './entitites/pagoGasto.entity';
 export * from './entitites/periodo-planilla.entity';
 export * from './entitites/planilla-deduccion.entity';
 export * from './entitites/planilla-detalle.entity';
+export * from './entitites/planilla-hora-extra.entity';
 export * from './entitites/prestamo-empleado.entity';
 export * from './entitites/productCategory.entity';
 export * from './entitites/productSubcategory.entity';

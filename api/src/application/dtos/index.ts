@@ -60,6 +60,8 @@ export * from './planilla-deduccion/create-planilla-deduccion.dto';
 export * from './planilla-deduccion/update-planilla-deduccion.dto';
 export * from './planilla-detalle/create-planilla-detalle.dto';
 export * from './planilla-detalle/update-planilla-detalle.dto';
+export * from './planilla-hora-extra/create-planilla-hora-extra.dto';
+export * from './planilla-hora-extra/update-planilla-hora-extra.dto';
 export * from './prestamo-empleado/create-prestamo-empleado.dto';
 export * from './prestamo-empleado/update-prestamo-empleado.dto';
 export * from './producto/create-producto-dto';
