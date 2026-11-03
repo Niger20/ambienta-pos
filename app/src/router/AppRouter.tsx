@@ -7,6 +7,7 @@ import { useAuth } from '../context/AuthContext';
 import Login from '../pages/Login';
 import Products from '../pages/Products';
 import Sales from '../pages/Sales';
+import Purchases from '../pages/Purchases';
 
 // Pantalla provisional de inicio: el panel principal se incorpora en la última etapa.
 const Inicio = () => {
@@ -58,6 +59,7 @@ const AppRouter = () => {
                     {/* Empleado + Admin */}
                     <Route path="/products" element={isAtLeastEmpleado ? <Products /> : <Denied />} />
                     <Route path="/sales" element={isAtLeastEmpleado ? <Sales /> : <Denied />} />
+                    <Route path="/purchases" element={isAtLeastEmpleado ? <Purchases /> : <Denied />} />
                 </Route>
             </Route>
 
