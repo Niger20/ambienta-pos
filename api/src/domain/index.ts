@@ -1,4 +1,7 @@
 export * from './entitites/abono.entity';
+export * from './entitites/acumulado-decimo-primer-mes.entity';
+export * from './entitites/acumulado-indemnizacion.entity';
+export * from './entitites/acumulado-vacaciones.entity';
 export * from './entitites/anticipo-salario.entity';
 export * from './entitites/autorizacion.entity';
 export * from './entitites/cargo-empleado.entity';
