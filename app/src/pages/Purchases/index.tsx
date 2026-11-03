@@ -1,26 +1,48 @@
 import { useState } from 'react';
 import { useAuthorizedAction, AuthorizationModal } from '../../components/auth';
-import { IconCart, IconSupplier } from './icons';
+import { IconCart, IconCreditCard, IconHistory, IconSupplier } from './icons';
 import { usePurchasesData } from './usePurchasesData';
-import { useProveedoresCrud } from './useProveedoresCrud';
+import { useComprasHistorial } from './useComprasHistorial';
+import { useCuentasPorPagar } from './useCuentasPorPagar';
 import { useLineasCompra } from './useLineasCompra';
 import { useProductQuickCreate } from './useProductQuickCreate';
 import { useNuevaCompra } from './useNuevaCompra';
 import { useExcelImport } from './useExcelImport';
+import { useEditCompra } from './useEditCompra';
+import { useProveedoresCrud } from './useProveedoresCrud';
 import { NuevaCompraTab } from './NuevaCompraTab';
+import { HistorialTab } from './HistorialTab';
 import { SuppliersTab } from './SuppliersTab';
+import { CuentasPorPagarTab } from './CuentasPorPagarTab';
 import { ProductQuickCreateModal } from './ProductQuickCreateModal';
 import { CategoriaQuickCreateModal } from './CategoriaQuickCreateModal';
 import { ProveedorModal } from './ProveedorModal';
+import { PagoModal } from './PagoModal';
+import { EditCompraModal } from './EditCompraModal';
 import type { ActiveTab } from './types';
 
 const Purchases = () => {
     const [activeTab, setActiveTab] = useState<ActiveTab>('new');
-    const { requestAuth, authModalProps } = useAuthorizedAction();
+    const { requestAuth, authModalProps, isAdmin } = useAuthorizedAction();
 
     const {
-        proveedores, setCategorias, categorias, fetchInitialData,
+        proveedores, setCategorias, productosCatalogo, categorias,
+        isLoading, setIsLoading, fetchInitialData,
     } = usePurchasesData();
+
+    const {
+        compraStatusFilter, setCompraStatusFilter,
+        compraSearchQuery, setCompraSearchQuery, compraPage, setCompraPage,
+        fetchCompras, handleVoidCompra, exportCompraDetallePDF,
+        filteredCompras, totalCompraPages, paginatedCompras,
+    } = useComprasHistorial(activeTab, setIsLoading, requestAuth);
+
+    const {
+        cuentaPagarSearchQuery, setCuentaPagarSearchQuery, filteredCuentasPorPagar,
+        selectedCuentaPagar, setSelectedCuentaPagar, abonos, loadingAbonos,
+        showPagoModal, setShowPagoModal, pagoForm, setPagoForm,
+        fetchCuentasPorPagar, openCuentaDetail, handlePagarCuenta, estadoColor, exportFacturaPDF,
+    } = useCuentasPorPagar(activeTab, setIsLoading);
 
     const [lineas, setLineas] = useLineasCompra();
 
@@ -51,6 +73,21 @@ const Purchases = () => {
     const { excelInputRef, downloadTemplate, handleExcelUpload } = useExcelImport(
         setLineas, setProductQueue, setPendingBarcode, setProductForm, setShowProductModal,
     );
+
+    const {
+        showEditCompraModal, setShowEditCompraModal, editingCompra, editLineas,
+        editSelectedProveedor, setEditSelectedProveedor,
+        editTipoCompra, setEditTipoCompra, editMetodoPago, setEditMetodoPago,
+        editFacturaProveedor, setEditFacturaProveedor,
+        editCuotas, setEditCuotas, editFechaVencimiento, setEditFechaVencimiento,
+        editCostosAdicionales,
+        editInputValue, editSearchResults, editShowSearchDropdown, setEditShowSearchDropdown,
+        isSavingEditCompra, isLoadingEditDetails,
+        editSubtotalLineas, editDescuentosLineas, editTotalCostosAdicionales, editTotalFactura,
+        handleOpenEditModal, handleEditSearchChange, handleAddEditLinea, handleUpdateEditLinea, handleRemoveEditLinea,
+        handleAddEditCostoAdicional, handleUpdateEditCostoAdicional, handleRemoveEditCostoAdicional,
+        handleSaveEditCompra,
+    } = useEditCompra(productosCatalogo, fetchCompras, fetchCuentasPorPagar, fetchInitialData);
 
     const {
         proveedorStatusFilter, setProveedorStatusFilter,
@@ -93,7 +130,9 @@ const Purchases = () => {
 
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 {tabBtn('new', 'Nueva Compra', IconCart)}
+                {tabBtn('history', 'Historial', IconHistory)}
                 {tabBtn('suppliers', 'Proveedores', IconSupplier)}
+                {tabBtn('cuentas', 'Cuentas por Pagar', IconCreditCard)}
             </div>
 
             {activeTab === 'new' && (
@@ -152,6 +191,25 @@ const Purchases = () => {
                 />
             )}
 
+            {activeTab === 'history' && (
+                <HistorialTab
+                    isAdmin={isAdmin}
+                    isLoading={isLoading}
+                    compraSearchQuery={compraSearchQuery}
+                    setCompraSearchQuery={setCompraSearchQuery}
+                    compraStatusFilter={compraStatusFilter}
+                    setCompraStatusFilter={setCompraStatusFilter}
+                    paginatedCompras={paginatedCompras}
+                    filteredCompras={filteredCompras}
+                    compraPage={compraPage}
+                    setCompraPage={setCompraPage}
+                    totalCompraPages={totalCompraPages}
+                    exportCompraDetallePDF={exportCompraDetallePDF}
+                    handleOpenEditModal={handleOpenEditModal}
+                    handleVoidCompra={handleVoidCompra}
+                />
+            )}
+
             {activeTab === 'suppliers' && (
                 <SuppliersTab
                     proveedorSearchQuery={proveedorSearchQuery}
@@ -162,6 +220,23 @@ const Purchases = () => {
                     filteredProveedores={filteredProveedores}
                     openEditProveedor={openEditProveedor}
                     deleteProveedor={deleteProveedor}
+                />
+            )}
+
+            {activeTab === 'cuentas' && (
+                <CuentasPorPagarTab
+                    cuentaPagarSearchQuery={cuentaPagarSearchQuery}
+                    setCuentaPagarSearchQuery={setCuentaPagarSearchQuery}
+                    isLoading={isLoading}
+                    filteredCuentasPorPagar={filteredCuentasPorPagar}
+                    selectedCuentaPagar={selectedCuentaPagar}
+                    setSelectedCuentaPagar={setSelectedCuentaPagar}
+                    openCuentaDetail={openCuentaDetail}
+                    estadoColor={estadoColor}
+                    setShowPagoModal={setShowPagoModal}
+                    exportFacturaPDF={exportFacturaPDF}
+                    loadingAbonos={loadingAbonos}
+                    abonos={abonos}
                 />
             )}
 
@@ -194,7 +269,55 @@ const Purchases = () => {
                 onClose={() => setShowProveedorModal(false)}
             />
 
+            <PagoModal
+                show={showPagoModal}
+                selectedCuentaPagar={selectedCuentaPagar}
+                pagoForm={pagoForm}
+                setPagoForm={setPagoForm}
+                handlePagarCuenta={handlePagarCuenta}
+                onClose={() => setShowPagoModal(false)}
+            />
+
             <AuthorizationModal {...authModalProps} />
+
+            <EditCompraModal
+                show={showEditCompraModal}
+                editingCompra={editingCompra}
+                isLoadingEditDetails={isLoadingEditDetails}
+                editLineas={editLineas}
+                editInputValue={editInputValue}
+                handleEditSearchChange={handleEditSearchChange}
+                editShowSearchDropdown={editShowSearchDropdown}
+                setEditShowSearchDropdown={setEditShowSearchDropdown}
+                editSearchResults={editSearchResults}
+                handleAddEditLinea={handleAddEditLinea}
+                handleUpdateEditLinea={handleUpdateEditLinea}
+                handleRemoveEditLinea={handleRemoveEditLinea}
+                proveedores={proveedores}
+                editSelectedProveedor={editSelectedProveedor}
+                setEditSelectedProveedor={setEditSelectedProveedor}
+                editTipoCompra={editTipoCompra}
+                setEditTipoCompra={setEditTipoCompra}
+                editMetodoPago={editMetodoPago}
+                setEditMetodoPago={setEditMetodoPago}
+                editCuotas={editCuotas}
+                setEditCuotas={setEditCuotas}
+                editFechaVencimiento={editFechaVencimiento}
+                setEditFechaVencimiento={setEditFechaVencimiento}
+                editFacturaProveedor={editFacturaProveedor}
+                setEditFacturaProveedor={setEditFacturaProveedor}
+                editCostosAdicionales={editCostosAdicionales}
+                handleAddEditCostoAdicional={handleAddEditCostoAdicional}
+                handleUpdateEditCostoAdicional={handleUpdateEditCostoAdicional}
+                handleRemoveEditCostoAdicional={handleRemoveEditCostoAdicional}
+                editSubtotalLineas={editSubtotalLineas}
+                editDescuentosLineas={editDescuentosLineas}
+                editTotalCostosAdicionales={editTotalCostosAdicionales}
+                editTotalFactura={editTotalFactura}
+                isSavingEditCompra={isSavingEditCompra}
+                handleSaveEditCompra={handleSaveEditCompra}
+                onClose={() => setShowEditCompraModal(false)}
+            />
         </div>
     );
 };
