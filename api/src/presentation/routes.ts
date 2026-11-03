@@ -27,6 +27,7 @@ import { CuentasPorPagarRoutes } from "./cuentasPorPagar/routes";
 import { PagoCuentasPorPagarRoutes } from "./pagoCuentasPorPagar/routes";
 import { CuentasPorCobrarRoutes } from "./cuentasPorCobrar/routes";
 import { AbonosRoutes } from "./abonos/routes";
+import { AutorizacionRoutes } from "./autorizaciones/routes";
 import { UnidadesMedidaRoutes } from "./unidades-medida/routes";
 import { DevolucionesRoutes } from "./devoluciones/routes";
 import { MermasRoutes } from "./mermas/routes";
@@ -90,6 +91,7 @@ export class AppRoutes {
         router.use('/api/pago-cuentas-por-pagar', [authMiddleware.validateJWT.bind(authMiddleware)], PagoCuentasPorPagarRoutes.routes);
         router.use('/api/cuentas-por-cobrar', [authMiddleware.validateJWT.bind(authMiddleware)], CuentasPorCobrarRoutes.routes);
         router.use('/api/abonos', [authMiddleware.validateJWT.bind(authMiddleware)], AbonosRoutes.routes);
+        router.use('/api/autorizaciones', [authMiddleware.validateJWT.bind(authMiddleware)], AutorizacionRoutes.routes(gateway));
         router.use('/api/unidades-medida', [authMiddleware.validateJWT.bind(authMiddleware)], UnidadesMedidaRoutes.routes);
         router.use('/api/devoluciones', [authMiddleware.validateJWT.bind(authMiddleware)], DevolucionesRoutes.routes);
         router.use('/api/mermas', [authMiddleware.validateJWT.bind(authMiddleware)], MermasRoutes.routes);
