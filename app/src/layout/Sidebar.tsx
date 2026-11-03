@@ -98,6 +98,7 @@ const Sidebar = ({ isOpen, onClose, collapsed }: {
                     <>
                         <NavSection label="Gestión" collapsed={collapsed} />
                         <SidebarLink to="/products"   label="Productos"     icon={icons.products}   onClose={onClose} collapsed={collapsed} />
+                        <SidebarLink to="/sales"      label="Ventas"        icon={icons.sales}      onClose={onClose} collapsed={collapsed} />
                     </>
                 )}
             </nav>
