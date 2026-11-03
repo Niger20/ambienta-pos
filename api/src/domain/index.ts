@@ -20,6 +20,7 @@ export * from './entitites/departamento-empleado.entity';
 export * from './entitites/devolucion.entity';
 export * from './entitites/empleado.entity';
 export * from './entitites/empresa.entity';
+export * from './entitites/feriado-nacional.entity';
 export * from './entitites/gasto.entity';
 export * from './entitites/historial-salario.entity';
 export * from './entitites/imagen-producto.entity';

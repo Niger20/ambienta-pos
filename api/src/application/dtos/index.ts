@@ -48,6 +48,8 @@ export * from './empleado/create-empleado.dto';
 export * from './empleado/update-empleado.dto';
 export * from './empresa/create-empresa-dto';
 export * from './empresa/update-empresa-dto';
+export * from './feriado-nacional/create-feriado-nacional.dto';
+export * from './feriado-nacional/update-feriado-nacional.dto';
 export * from './gasto/create-gasto-dto';
 export * from './gasto/update-gasto-dto';
 export * from './historial-salario/create-historial-salario.dto';

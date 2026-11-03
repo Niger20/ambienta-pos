@@ -58,6 +58,7 @@ import { PagosBeneficiosRoutes } from "./pagos-beneficios/routes";
 import { RegistroAsistenciaRoutes } from "./registro-asistencia/routes";
 import { ConfiguracionInssRoutes } from "./configuracion-inss/routes";
 import { TablaTramoIrRoutes } from "./tabla-tramo-ir/routes";
+import { FeriadosNacionalesRoutes } from "./feriados-nacionales/routes";
 
 export class AppRoutes {
 
@@ -123,6 +124,7 @@ export class AppRoutes {
         router.use('/api/registro-asistencia', [authMiddleware.validateJWT.bind(authMiddleware)], RegistroAsistenciaRoutes.routes);
         router.use('/api/configuracion-inss', [authMiddleware.validateJWT.bind(authMiddleware)], ConfiguracionInssRoutes.routes);
         router.use('/api/tabla-tramo-ir', [authMiddleware.validateJWT.bind(authMiddleware)], TablaTramoIrRoutes.routes);
+        router.use('/api/feriados-nacionales', [authMiddleware.validateJWT.bind(authMiddleware)], FeriadosNacionalesRoutes.routes);
 
         return router;
     }
