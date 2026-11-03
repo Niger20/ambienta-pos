@@ -44,6 +44,7 @@ import { PlanillaDetalleRoutes } from "./planilla-detalle/routes";
 import { PlanillaDeduccionesRoutes } from "./planilla-deducciones/routes";
 import { PlanillaHorasExtraRoutes } from "./planilla-horas-extra/routes";
 import { PrestamosEmpleadosRoutes } from "./prestamos-empleados/routes";
+import { CuotasPrestamosRoutes } from "./cuotas-prestamos/routes";
 import { SolicitudesVacacionesRoutes } from "./solicitudes-vacaciones/routes";
 import { RegistroAsistenciaRoutes } from "./registro-asistencia/routes";
 import { ConfiguracionInssRoutes } from "./configuracion-inss/routes";
@@ -99,6 +100,7 @@ export class AppRoutes {
         router.use('/api/planilla-deducciones', [authMiddleware.validateJWT.bind(authMiddleware)], PlanillaDeduccionesRoutes.routes);
         router.use('/api/planilla-horas-extra', [authMiddleware.validateJWT.bind(authMiddleware)], PlanillaHorasExtraRoutes.routes);
         router.use('/api/prestamos-empleados', [authMiddleware.validateJWT.bind(authMiddleware)], PrestamosEmpleadosRoutes.routes);
+        router.use('/api/cuotas-prestamos', [authMiddleware.validateJWT.bind(authMiddleware)], CuotasPrestamosRoutes.routes);
         router.use('/api/solicitudes-vacaciones', [authMiddleware.validateJWT.bind(authMiddleware)], SolicitudesVacacionesRoutes.routes);
         router.use('/api/registro-asistencia', [authMiddleware.validateJWT.bind(authMiddleware)], RegistroAsistenciaRoutes.routes);
         router.use('/api/configuracion-inss', [authMiddleware.validateJWT.bind(authMiddleware)], ConfiguracionInssRoutes.routes);
