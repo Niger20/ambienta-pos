@@ -45,6 +45,8 @@ export * from './entitites/producto.entity';
 export * from './entitites/proveedor.entity';
 export * from './entitites/registro-asistencia.entity';
 export * from './entitites/repartidor.entity';
+export * from './entitites/reportes/utilidad-diaria.entity';
+export * from './entitites/reportes/utilidad-producto.entity';
 export * from './entitites/sesion.entity';
 export * from './entitites/solicitud-vacaciones.entity';
 export * from './entitites/tabla-tramo-ir.entity';
