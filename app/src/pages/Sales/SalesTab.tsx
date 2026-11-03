@@ -1,4 +1,4 @@
-import { IconFilePdf } from './icons';
+import { IconFilePdf, IconReturn } from './icons';
 import type { Venta } from './types';
 import { getSaleClientName } from './types';
 
@@ -16,12 +16,13 @@ interface SalesTabProps {
     totalSalesPages: number;
     exportVentaDetallePDF: (sale: Venta) => Promise<void>;
     handleVoidSale: (id: number) => Promise<void>;
+    onReturnSale: (sale: Venta) => void;
 }
 
 export const SalesTab = ({
     isLoading, error, saleSearchQuery, setSaleSearchQuery, saleStatusFilter, setSaleStatusFilter,
     paginatedSales, filteredSales, salesPage, setSalesPage, totalSalesPages,
-    exportVentaDetallePDF, handleVoidSale,
+    exportVentaDetallePDF, handleVoidSale, onReturnSale,
 }: SalesTabProps) => {
     return (
         <div className="tab-content">
@@ -102,6 +103,12 @@ export const SalesTab = ({
                                                             <IconFilePdf />
                                                             <span>Detalle</span>
                                                         </button>
+                                                        {!isAnulada && sale.tipoventa !== 'COTIZACION' && (
+                                                            <button className="btn" onClick={() => onReturnSale(sale)} title="Registrar devolución de productos" style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', backgroundColor: 'var(--accent-warning-bg-light)', color: 'var(--accent-warning)', display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}>
+                                                                <IconReturn />
+                                                                <span>Devolver</span>
+                                                            </button>
+                                                        )}
                                                         {!isAnulada && (
                                                             <button className="btn" onClick={() => handleVoidSale(sale.id)} style={{ padding: '0.3rem 0.6rem', fontSize: '0.75rem', backgroundColor: 'rgba(239, 68, 68, 0.1)', color: 'var(--accent-danger)' }}>
                                                                 Anular

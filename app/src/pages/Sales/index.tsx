@@ -1,19 +1,30 @@
 import { useState } from 'react';
 import { useAuthorizedAction, AuthorizationModal } from '../../components/auth';
-import { IconReceipt, IconFileText, IconUsers } from './icons';
+import { IconReceipt, IconFileText, IconUsers, IconCreditCard, IconBriefcase, IconReturn } from './icons';
 import { useSalesData } from './useSalesData';
 import { useSalesFilters } from './useSalesFilters';
 import { useVentaDetail } from './useVentaDetail';
 import { useCotizaciones } from './useCotizaciones';
+import { useCuentasPorCobrar } from './useCuentasPorCobrar';
+import { useRetiros } from './useRetiros';
+import { useDevoluciones } from './useDevoluciones';
 import { useCustomerCrud } from './useCustomerCrud';
 import { SalesTab } from './SalesTab';
 import { CotizacionesTab } from './CotizacionesTab';
 import { CustomersTab } from './CustomersTab';
+import { CuentasTab } from './CuentasTab';
+import { CuentaDetailPanel } from './CuentaDetailPanel';
+import { RetirosTab } from './RetirosTab';
+import { DevolucionesTab } from './DevolucionesTab';
+import { DevolucionModal } from './DevolucionModal';
+import { AbonoModal } from './AbonoModal';
+import { GlobalAbonoModal } from './GlobalAbonoModal';
+import { RetiroModal } from './RetiroModal';
 import { EditCustomerModal } from './EditCustomerModal';
 import { FacturarCotizacionModal } from './FacturarCotizacionModal';
 import { VentaDetalleModal } from './VentaDetalleModal';
 
-type ActiveTab = 'sales' | 'cotizaciones' | 'customers';
+type ActiveTab = 'sales' | 'cotizaciones' | 'customers' | 'cuentas' | 'retiros' | 'devoluciones';
 
 const btnStyle = (active: boolean) => ({
     backgroundColor: active ? '' : 'var(--bg-card)',
@@ -56,6 +67,40 @@ const Sales = () => {
     } = useCotizaciones(sales, fetchData);
 
     const {
+        cuentaSearchQuery, setCuentaSearchQuery, filteredCuentas,
+        selectedCuenta, setSelectedCuenta, abonos, loadingAbonos,
+        showAbonoModal, setShowAbonoModal, abonoForm, setAbonoForm, savingAbono,
+        expandedClientId, setExpandedClientId,
+        showGlobalAbonoModal, setShowGlobalAbonoModal, globalAbonoForm, setGlobalAbonoForm,
+        globalAbonoClientInfo, setGlobalAbonoClientInfo, savingGlobalAbono,
+        cuentasSortField, setCuentasSortField, cuentasSortDirection, setCuentasSortDirection,
+        cuentasPages, setCuentasPages,
+        openCuentaDetail, getClienteForCuenta,
+        handleRegistrarAbono, handleLiquidarcCuentaCompleta,
+        openGlobalAbonoModal, handleRegistrarAbonoGlobal,
+        estadoColor, exportCuentaIndividualPDF, exportClienteCuentasPDF,
+        buildWsLink, buildClienteWsLink,
+    } = useCuentasPorCobrar(customers, activeTab);
+
+    const {
+        retiros, loadingRetiros, showRetiroModal, setShowRetiroModal,
+        retiroForm, setRetiroForm, savingRetiro,
+        fetchRetiros, handleRegistrarRetiro,
+    } = useRetiros(fetchData);
+
+    const {
+        devoluciones, loadingDevoluciones, fetchDevoluciones,
+        showModal: showDevolucionModal, openModal: openDevolucionModal, closeModal: closeDevolucionModal,
+        ventaSeleccionada, selectVenta, resetVenta, lineas: lineasDevolucion, loadingLineas,
+        cantidades, setCantidades, motivo: motivoDevolucion, setMotivo: setMotivoDevolucion, saving: savingDevolucion,
+        tipo: tipoDevolucion, setTipo: setTipoDevolucion, metodo: metodoDevolucion, setMetodo: setMetodoDevolucion,
+        referencia: referenciaDevolucion, setReferencia: setReferenciaDevolucion,
+        cambioLineas, buscarProductos, agregarProductoCambio, cambiarCantidadCambio, quitarProductoCambio,
+        montoLinea, totalDevolucion, totalCambio, saldoCuenta, acreditado, reembolso, requiereMetodo, sinSesion,
+        handleSubmit: handleSubmitDevolucion, handleDelete: handleDeleteDevolucion,
+    } = useDevoluciones(requestAuth, fetchData);
+
+    const {
         showEditCustomerModal, setShowEditCustomerModal,
         customerForm, setCustomerForm, savingCustomer,
         handleEditCustomer, openCreateCustomerModal, handleSaveCustomer, handleDeleteCustomer,
@@ -66,7 +111,7 @@ const Sales = () => {
             <div className="card-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: 0, border: 'none' }}>
                 <div>
                     <h2 className="card-title" style={{ fontSize: '1.5rem' }}>Ventas & Clientes</h2>
-                    <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Historial de ventas, cotizaciones y clientes.</p>
+                    <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>Historial de ventas, cotizaciones, clientes y cuentas por cobrar.</p>
                 </div>
             </div>
 
@@ -95,6 +140,18 @@ const Sales = () => {
                     <IconUsers />
                     <span>Clientes</span>
                 </button>
+                <button className={`btn ${activeTab === 'cuentas' ? 'btn-primary' : ''}`} style={{ ...btnStyle(activeTab === 'cuentas'), display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => setActiveTab('cuentas')}>
+                    <IconCreditCard />
+                    <span>Cuentas por Cobrar</span>
+                </button>
+                <button className={`btn ${activeTab === 'retiros' ? 'btn-primary' : ''}`} style={{ ...btnStyle(activeTab === 'retiros'), display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => { setActiveTab('retiros'); fetchRetiros(); }}>
+                    <IconBriefcase />
+                    <span>Retiros de Efectivo</span>
+                </button>
+                <button className={`btn ${activeTab === 'devoluciones' ? 'btn-primary' : ''}`} style={{ ...btnStyle(activeTab === 'devoluciones'), display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }} onClick={() => { setActiveTab('devoluciones'); fetchDevoluciones(); }}>
+                    <IconReturn />
+                    <span>Devoluciones</span>
+                </button>
             </div>
 
             <div className="card">
@@ -113,6 +170,7 @@ const Sales = () => {
                         totalSalesPages={totalSalesPages}
                         exportVentaDetallePDF={exportVentaDetallePDF}
                         handleVoidSale={handleVoidSale}
+                        onReturnSale={openDevolucionModal}
                     />
                 )}
 
@@ -140,7 +198,129 @@ const Sales = () => {
                         handleDeleteCustomer={handleDeleteCustomer}
                     />
                 )}
+
+                {activeTab === 'cuentas' && (
+                    <>
+                        <CuentasTab
+                            cuentaSearchQuery={cuentaSearchQuery}
+                            setCuentaSearchQuery={setCuentaSearchQuery}
+                            cuentasSortField={cuentasSortField}
+                            setCuentasSortField={setCuentasSortField}
+                            cuentasSortDirection={cuentasSortDirection}
+                            setCuentasSortDirection={setCuentasSortDirection}
+                            filteredCuentas={filteredCuentas}
+                            getClienteForCuenta={getClienteForCuenta}
+                            expandedClientId={expandedClientId}
+                            setExpandedClientId={setExpandedClientId}
+                            buildClienteWsLink={buildClienteWsLink}
+                            openGlobalAbonoModal={openGlobalAbonoModal}
+                            exportClienteCuentasPDF={exportClienteCuentasPDF}
+                            cuentasPages={cuentasPages}
+                            setCuentasPages={setCuentasPages}
+                            selectedCuenta={selectedCuenta}
+                            openCuentaDetail={openCuentaDetail}
+                            estadoColor={estadoColor}
+                        />
+                        <CuentaDetailPanel
+                            selectedCuenta={selectedCuenta}
+                            setSelectedCuenta={setSelectedCuenta}
+                            getClienteForCuenta={getClienteForCuenta}
+                            estadoColor={estadoColor}
+                            setShowAbonoModal={setShowAbonoModal}
+                            handleLiquidarcCuentaCompleta={handleLiquidarcCuentaCompleta}
+                            openVentaDetalleModal={openVentaDetalleModal}
+                            exportCuentaIndividualPDF={exportCuentaIndividualPDF}
+                            buildWsLink={buildWsLink}
+                            loadingAbonos={loadingAbonos}
+                            abonos={abonos}
+                        />
+                    </>
+                )}
+
+                {activeTab === 'retiros' && (
+                    <RetirosTab
+                        loadingRetiros={loadingRetiros}
+                        retiros={retiros}
+                        sales={sales}
+                        setShowRetiroModal={setShowRetiroModal}
+                    />
+                )}
+
+                {activeTab === 'devoluciones' && (
+                    <DevolucionesTab
+                        loadingDevoluciones={loadingDevoluciones}
+                        devoluciones={devoluciones}
+                        onNewDevolucion={() => openDevolucionModal()}
+                        onDelete={handleDeleteDevolucion}
+                    />
+                )}
             </div>
+
+            <DevolucionModal
+                show={showDevolucionModal}
+                sales={sales}
+                ventaSeleccionada={ventaSeleccionada}
+                onSelectVenta={selectVenta}
+                onChangeVenta={resetVenta}
+                lineas={lineasDevolucion}
+                loadingLineas={loadingLineas}
+                cantidades={cantidades}
+                setCantidades={setCantidades}
+                motivo={motivoDevolucion}
+                setMotivo={setMotivoDevolucion}
+                saving={savingDevolucion}
+                tipo={tipoDevolucion}
+                setTipo={setTipoDevolucion}
+                metodo={metodoDevolucion}
+                setMetodo={setMetodoDevolucion}
+                referencia={referenciaDevolucion}
+                setReferencia={setReferenciaDevolucion}
+                cambioLineas={cambioLineas}
+                buscarProductos={buscarProductos}
+                onAddCambio={agregarProductoCambio}
+                onChangeCantidadCambio={cambiarCantidadCambio}
+                onRemoveCambio={quitarProductoCambio}
+                montoLinea={montoLinea}
+                totalDevolucion={totalDevolucion}
+                totalCambio={totalCambio}
+                saldoCuenta={saldoCuenta}
+                acreditado={acreditado}
+                reembolso={reembolso}
+                requiereMetodo={requiereMetodo}
+                sinSesion={sinSesion}
+                onSubmit={handleSubmitDevolucion}
+                onClose={closeDevolucionModal}
+            />
+
+            <AbonoModal
+                show={showAbonoModal}
+                selectedCuenta={selectedCuenta}
+                abonoForm={abonoForm}
+                setAbonoForm={setAbonoForm}
+                savingAbono={savingAbono}
+                handleRegistrarAbono={handleRegistrarAbono}
+                onClose={() => setShowAbonoModal(false)}
+            />
+
+            <GlobalAbonoModal
+                show={showGlobalAbonoModal}
+                globalAbonoClientInfo={globalAbonoClientInfo}
+                globalAbonoForm={globalAbonoForm}
+                setGlobalAbonoForm={setGlobalAbonoForm}
+                savingGlobalAbono={savingGlobalAbono}
+                handleRegistrarAbonoGlobal={handleRegistrarAbonoGlobal}
+                onClose={() => { setShowGlobalAbonoModal(false); setGlobalAbonoClientInfo(null); }}
+            />
+
+            <RetiroModal
+                show={showRetiroModal}
+                customers={customers}
+                retiroForm={retiroForm}
+                setRetiroForm={setRetiroForm}
+                savingRetiro={savingRetiro}
+                handleRegistrarRetiro={handleRegistrarRetiro}
+                onClose={() => setShowRetiroModal(false)}
+            />
 
             <EditCustomerModal
                 show={showEditCustomerModal}
