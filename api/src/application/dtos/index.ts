@@ -8,6 +8,8 @@ export * from './acumulado-vacaciones/create-acumulado-vacaciones.dto';
 export * from './acumulado-vacaciones/update-acumulado-vacaciones.dto';
 export * from './anticipo-salario/create-anticipo-salario.dto';
 export * from './anticipo-salario/update-anticipo-salario.dto';
+export * from './auditoria/create-auditoria.dto';
+export * from './auditoria/update-auditoria.dto';
 export * from './auth/login-user-dto';
 export * from './auth/register-user-dto';
 export * from './auth/update-user-dto';
