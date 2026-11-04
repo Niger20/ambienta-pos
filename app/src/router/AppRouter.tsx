@@ -5,6 +5,8 @@ import { useAuth } from '../context/AuthContext';
 
 // Pages
 import Login from '../pages/Login';
+import POS from '../pages/POS';
+import CustomerDisplay from '../pages/CustomerDisplay';
 import Products from '../pages/Products';
 import Sales from '../pages/Sales';
 import Purchases from '../pages/Purchases';
@@ -52,9 +54,15 @@ const AppRouter = () => {
 
             {/* Protected Routes encapsulated in MainLayout */}
             <Route element={<ProtectedRoute />}>
+            {/* Customer display — full screen, no layout */}
+            <Route path="/pos/cliente" element={<CustomerDisplay />} />
+
                 <Route element={<MainLayout />}>
                     {/* Pantalla provisional de inicio */}
                     <Route path="/" element={<Inicio />} />
+
+                    {/* ALL roles */}
+                    <Route path="/pos" element={<POS />} />
 
                     {/* Empleado + Admin */}
                     <Route path="/products" element={isAtLeastEmpleado ? <Products /> : <Denied />} />
