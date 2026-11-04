@@ -93,6 +93,7 @@ const Sidebar = ({ isOpen, onClose, collapsed }: {
                 {/* General — all roles */}
                 <NavSection label="General" collapsed={collapsed} />
                 <SidebarLink to="/"          label="Inicio"         icon={icons.dashboard}  onClose={onClose} collapsed={collapsed} />
+                <SidebarLink to="/pos"        label="Punto de Venta" icon={icons.pos}        onClose={onClose} collapsed={collapsed} />
                 {/* Gestión — admin & empleado */}
                 {isAtLeastEmpleado && (
                     <>
