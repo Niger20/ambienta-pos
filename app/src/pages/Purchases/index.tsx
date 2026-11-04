@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuthorizedAction, AuthorizationModal } from '../../components/auth';
-import { IconCart, IconCreditCard, IconHistory, IconSupplier } from './icons';
+import { IconCart, IconCreditCard, IconGlobal, IconHistory, IconSupplier } from './icons';
+import { IconFile } from './icons';
 import { usePurchasesData } from './usePurchasesData';
 import { useComprasHistorial } from './useComprasHistorial';
 import { useCuentasPorPagar } from './useCuentasPorPagar';
@@ -8,16 +9,22 @@ import { useLineasCompra } from './useLineasCompra';
 import { useProductQuickCreate } from './useProductQuickCreate';
 import { useNuevaCompra } from './useNuevaCompra';
 import { useExcelImport } from './useExcelImport';
+import { useOrdenesCompra } from './useOrdenesCompra';
 import { useEditCompra } from './useEditCompra';
 import { useProveedoresCrud } from './useProveedoresCrud';
+import { usePropuestas } from './usePropuestas';
 import { NuevaCompraTab } from './NuevaCompraTab';
+import { OrdenesTab } from './OrdenesTab';
 import { HistorialTab } from './HistorialTab';
 import { SuppliersTab } from './SuppliersTab';
 import { CuentasPorPagarTab } from './CuentasPorPagarTab';
+import { PropuestasTab } from './PropuestasTab';
 import { ProductQuickCreateModal } from './ProductQuickCreateModal';
 import { CategoriaQuickCreateModal } from './CategoriaQuickCreateModal';
 import { ProveedorModal } from './ProveedorModal';
 import { PagoModal } from './PagoModal';
+import { CrearOrdenModal } from './CrearOrdenModal';
+import { OrdenDetalleModal } from './OrdenDetalleModal';
 import { EditCompraModal } from './EditCompraModal';
 import type { ActiveTab } from './types';
 
@@ -75,6 +82,21 @@ const Purchases = () => {
     );
 
     const {
+        loadingOrdenes, ordenSearchQuery, setOrdenSearchQuery,
+        ordenStatusFilter, setOrdenStatusFilter, selectedOrdenModal, setSelectedOrdenModal,
+        showCrearOrdenModal, setShowCrearOrdenModal,
+        nuevaOrdenProveedorId, setNuevaOrdenProveedorId,
+        nuevaOrdenFechaEsperada, setNuevaOrdenFechaEsperada,
+        nuevaOrdenLineas, setNuevaOrdenLineas,
+        ordenInputSearch, setOrdenInputSearch,
+        ordenSearchResults, setOrdenSearchResults,
+        showOrdenSearchDropdown, setShowOrdenSearchDropdown,
+        isSavingOrden,
+        handleCrearOrdenCompra, handleRecibirOrden, handleCancelarOrden, exportOrdenCompraPDF,
+        filteredOrdenesCompra,
+    } = useOrdenesCompra(activeTab, setActiveTab, productosCatalogo, proveedores, setLineas, setSelectedProveedor, setOrdenCompraIdActiva);
+
+    const {
         showEditCompraModal, setShowEditCompraModal, editingCompra, editLineas,
         editSelectedProveedor, setEditSelectedProveedor,
         editTipoCompra, setEditTipoCompra, editMetodoPago, setEditMetodoPago,
@@ -97,6 +119,8 @@ const Purchases = () => {
         isEditingProveedor, proveedorForm, setProveedorForm,
         openCreateProveedor, openEditProveedor, handleSaveProveedor, deleteProveedor,
     } = useProveedoresCrud(proveedores, requestAuth, fetchInitialData, setSelectedProveedor);
+
+    const { handleGenerarPropuestaGlobal, handleGenerarPropuesta } = usePropuestas();
 
     const tabBtn = (tab: ActiveTab, label: string, IconComponent: React.ComponentType) => (
         <button
@@ -130,9 +154,11 @@ const Purchases = () => {
 
             <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', flexWrap: 'wrap' }}>
                 {tabBtn('new', 'Nueva Compra', IconCart)}
+                {tabBtn('ordenes', 'Órdenes de Compra', IconFile)}
                 {tabBtn('history', 'Historial', IconHistory)}
                 {tabBtn('suppliers', 'Proveedores', IconSupplier)}
                 {tabBtn('cuentas', 'Cuentas por Pagar', IconCreditCard)}
+                {tabBtn('proposals', 'Propuestas de Pedido', IconGlobal)}
             </div>
 
             {activeTab === 'new' && (
@@ -191,6 +217,23 @@ const Purchases = () => {
                 />
             )}
 
+            {activeTab === 'ordenes' && (
+                <OrdenesTab
+                    ordenSearchQuery={ordenSearchQuery}
+                    setOrdenSearchQuery={setOrdenSearchQuery}
+                    ordenStatusFilter={ordenStatusFilter}
+                    setOrdenStatusFilter={setOrdenStatusFilter}
+                    onOpenCrearOrden={() => { setShowCrearOrdenModal(true); setNuevaOrdenLineas([]); setNuevaOrdenProveedorId(''); }}
+                    loadingOrdenes={loadingOrdenes}
+                    filteredOrdenesCompra={filteredOrdenesCompra}
+                    proveedores={proveedores}
+                    setSelectedOrdenModal={setSelectedOrdenModal}
+                    handleRecibirOrden={handleRecibirOrden}
+                    exportOrdenCompraPDF={exportOrdenCompraPDF}
+                    handleCancelarOrden={handleCancelarOrden}
+                />
+            )}
+
             {activeTab === 'history' && (
                 <HistorialTab
                     isAdmin={isAdmin}
@@ -240,6 +283,14 @@ const Purchases = () => {
                 />
             )}
 
+            {activeTab === 'proposals' && (
+                <PropuestasTab
+                    handleGenerarPropuestaGlobal={handleGenerarPropuestaGlobal}
+                    proveedores={proveedores}
+                    handleGenerarPropuesta={handleGenerarPropuesta}
+                />
+            )}
+
             <ProductQuickCreateModal
                 show={showProductModal}
                 pendingBarcode={pendingBarcode}
@@ -279,6 +330,35 @@ const Purchases = () => {
             />
 
             <AuthorizationModal {...authModalProps} />
+
+            <CrearOrdenModal
+                show={showCrearOrdenModal}
+                proveedores={proveedores}
+                productosCatalogo={productosCatalogo}
+                nuevaOrdenProveedorId={nuevaOrdenProveedorId}
+                setNuevaOrdenProveedorId={setNuevaOrdenProveedorId}
+                nuevaOrdenFechaEsperada={nuevaOrdenFechaEsperada}
+                setNuevaOrdenFechaEsperada={setNuevaOrdenFechaEsperada}
+                ordenInputSearch={ordenInputSearch}
+                setOrdenInputSearch={setOrdenInputSearch}
+                ordenSearchResults={ordenSearchResults}
+                setOrdenSearchResults={setOrdenSearchResults}
+                showOrdenSearchDropdown={showOrdenSearchDropdown}
+                setShowOrdenSearchDropdown={setShowOrdenSearchDropdown}
+                nuevaOrdenLineas={nuevaOrdenLineas}
+                setNuevaOrdenLineas={setNuevaOrdenLineas}
+                isSavingOrden={isSavingOrden}
+                handleCrearOrdenCompra={handleCrearOrdenCompra}
+                onClose={() => setShowCrearOrdenModal(false)}
+            />
+
+            <OrdenDetalleModal
+                selectedOrdenModal={selectedOrdenModal}
+                setSelectedOrdenModal={setSelectedOrdenModal}
+                proveedores={proveedores}
+                exportOrdenCompraPDF={exportOrdenCompraPDF}
+                handleRecibirOrden={handleRecibirOrden}
+            />
 
             <EditCompraModal
                 show={showEditCompraModal}
