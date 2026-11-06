@@ -11,6 +11,7 @@ import Products from '../pages/Products';
 import Sales from '../pages/Sales';
 import Purchases from '../pages/Purchases';
 import Expenses from '../pages/Expenses';
+import Sessions from '../pages/Sessions';
 import Deliveries from '../pages/Deliveries';
 
 // Pantalla provisional de inicio: el panel principal se incorpora en la última etapa.
@@ -75,6 +76,7 @@ const AppRouter = () => {
 
                     {/* Admin only */}
                     <Route path="/expenses" element={isAdmin ? <Expenses /> : <Denied />} />
+                    <Route path="/sesiones" element={isAdmin ? <Sessions /> : <Denied />} />
                 </Route>
             </Route>
 
