@@ -1,0 +1,24 @@
+/* Navegación de Recursos Humanos y Reportes: panel lateral (SectionNav) en escritorio y selector en pantallas chicas. */
+.hr-nav-select {
+    display: none;
+}
+
+.hr-breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.hr-breadcrumb strong {
+    color: var(--text-primary);
+    font-size: 0.95rem;
+}
+
+@media (max-width: 1024px) {
+    .hr-nav-select {
+        display: block;
+    }
+}
