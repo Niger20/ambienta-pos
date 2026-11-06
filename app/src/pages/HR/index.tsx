@@ -4,15 +4,25 @@ import './hr.css';
 import { SectionNav, SectionNavToggle } from '../../components/SectionNav';
 import { useLookups } from './useLookups';
 import type { Lookups } from './useLookups';
-import { IconUsers, IconBuilding, IconAward, IconSliders, IconTrend, IconCalendar, IconWallet } from './icons';
+import {
+    IconUsers, IconBuilding, IconAward, IconClock, IconSun, IconCalendar, IconWallet, IconCoins, IconList,
+    IconTrend, IconLogOut, IconSliders,
+} from './icons';
 import { EmpleadosSection } from './EmpleadosSection';
-import { PlanillaSection } from './PlanillaSection';
 import { EstructuraSection } from './EstructuraSection';
+import { AsistenciaSection } from './AsistenciaSection';
+import { PlanillaSection } from './PlanillaSection';
+import { PrestamosSection } from './PrestamosSection';
+import { VacacionesSection } from './VacacionesSection';
+import { BeneficiosSection } from './BeneficiosSection';
+import { LiquidacionesSection } from './LiquidacionesSection';
 import { ParametrosSection } from './ParametrosSection';
 
 type ViewKey =
     | 'empleados' | 'departamentos' | 'cargos'
-    | 'planilla'
+    | 'asistencia' | 'solicitudes' | 'acumulado'
+    | 'planilla' | 'anticipos' | 'prestamos' | 'cuotas'
+    | 'decimo' | 'indemnizacion' | 'pagos' | 'liquidaciones'
     | 'inss' | 'ir' | 'feriados';
 
 interface MenuItem {
@@ -27,7 +37,6 @@ interface MenuGroup {
     items: MenuItem[];
 }
 
-// Secciones disponibles en esta etapa; el resto de módulos de RRHH se incorpora después.
 const MENU: MenuGroup[] = [
     {
         label: 'Personal',
@@ -38,9 +47,29 @@ const MENU: MenuGroup[] = [
         ],
     },
     {
+        label: 'Tiempo y vacaciones',
+        items: [
+            { key: 'asistencia', label: 'Asistencia', icon: <IconClock />, render: (lk) => <AsistenciaSection lookups={lk} /> },
+            { key: 'solicitudes', label: 'Solicitudes de vacaciones', icon: <IconCalendar />, render: (lk) => <VacacionesSection lookups={lk} view="solicitudes" /> },
+            { key: 'acumulado', label: 'Acumulado de vacaciones', icon: <IconSun />, render: (lk) => <VacacionesSection lookups={lk} view="acumulado" /> },
+        ],
+    },
+    {
         label: 'Nómina',
         items: [
             { key: 'planilla', label: 'Planilla', icon: <IconWallet />, render: (lk) => <PlanillaSection lookups={lk} /> },
+            { key: 'anticipos', label: 'Anticipos de salario', icon: <IconWallet />, render: (lk) => <PrestamosSection lookups={lk} view="anticipos" /> },
+            { key: 'prestamos', label: 'Préstamos', icon: <IconCoins />, render: (lk) => <PrestamosSection lookups={lk} view="prestamos" /> },
+            { key: 'cuotas', label: 'Cuotas de préstamos', icon: <IconList />, render: (lk) => <PrestamosSection lookups={lk} view="cuotas" /> },
+        ],
+    },
+    {
+        label: 'Prestaciones',
+        items: [
+            { key: 'decimo', label: 'Décimo tercer mes', icon: <IconAward />, render: (lk) => <BeneficiosSection lookups={lk} view="decimo" /> },
+            { key: 'indemnizacion', label: 'Indemnización', icon: <IconCoins />, render: (lk) => <BeneficiosSection lookups={lk} view="indemnizacion" /> },
+            { key: 'pagos', label: 'Pagos de beneficios', icon: <IconLogOut />, render: (lk) => <BeneficiosSection lookups={lk} view="pagos" /> },
+            { key: 'liquidaciones', label: 'Liquidaciones', icon: <IconLogOut />, render: (lk) => <LiquidacionesSection lookups={lk} /> },
         ],
     },
     {
@@ -83,7 +112,7 @@ const HR = () => {
                 <div>
                     <h2 className="card-title" style={{ fontSize: '1.5rem' }}>Recursos Humanos & Planilla</h2>
                     <p style={{ color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
-                        Gestión de empleados, estructura organizacional y parámetros.
+                        Gestión de empleados, asistencia, planilla, préstamos, vacaciones, beneficios y liquidaciones.
                     </p>
                 </div>
             </div>
