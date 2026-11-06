@@ -4,13 +4,15 @@ import './hr.css';
 import { SectionNav, SectionNavToggle } from '../../components/SectionNav';
 import { useLookups } from './useLookups';
 import type { Lookups } from './useLookups';
-import { IconUsers, IconBuilding, IconAward, IconSliders, IconTrend, IconCalendar } from './icons';
+import { IconUsers, IconBuilding, IconAward, IconSliders, IconTrend, IconCalendar, IconWallet } from './icons';
 import { EmpleadosSection } from './EmpleadosSection';
+import { PlanillaSection } from './PlanillaSection';
 import { EstructuraSection } from './EstructuraSection';
 import { ParametrosSection } from './ParametrosSection';
 
 type ViewKey =
     | 'empleados' | 'departamentos' | 'cargos'
+    | 'planilla'
     | 'inss' | 'ir' | 'feriados';
 
 interface MenuItem {
@@ -33,6 +35,12 @@ const MENU: MenuGroup[] = [
             { key: 'empleados', label: 'Empleados', icon: <IconUsers />, render: (lk) => <EmpleadosSection lookups={lk} /> },
             { key: 'departamentos', label: 'Departamentos', icon: <IconBuilding />, render: (lk) => <EstructuraSection lookups={lk} view="departamentos" /> },
             { key: 'cargos', label: 'Cargos', icon: <IconAward />, render: (lk) => <EstructuraSection lookups={lk} view="cargos" /> },
+        ],
+    },
+    {
+        label: 'Nómina',
+        items: [
+            { key: 'planilla', label: 'Planilla', icon: <IconWallet />, render: (lk) => <PlanillaSection lookups={lk} /> },
         ],
     },
     {
