@@ -65,6 +65,7 @@ const Sidebar = ({ isOpen, onClose, collapsed }: {
     const rol = user?.rol;
     const nombre = user?.nombreusuario || 'Usuario';
 
+    const isAdmin = rol === 'administrador';
     const isAtLeastEmpleado = rol === 'administrador' || rol === 'empleado';
 
     // Generate initials from name
@@ -101,6 +102,14 @@ const Sidebar = ({ isOpen, onClose, collapsed }: {
                         <SidebarLink to="/products"   label="Productos"     icon={icons.products}   onClose={onClose} collapsed={collapsed} />
                         <SidebarLink to="/sales"      label="Ventas"        icon={icons.sales}      onClose={onClose} collapsed={collapsed} />
                         <SidebarLink to="/purchases"  label="Compras"       icon={icons.purchases}  onClose={onClose} collapsed={collapsed} />
+                        <SidebarLink to="/deliveries" label="Repartidores"  icon={icons.deliveries} onClose={onClose} collapsed={collapsed} />
+                    </>
+                )}
+                {/* Administración — admin only */}
+                {isAdmin && (
+                    <>
+                        <NavSection label="Administración" collapsed={collapsed} />
+                        <SidebarLink to="/expenses"  label="Gastos"    icon={icons.expenses}  onClose={onClose} collapsed={collapsed} />
                     </>
                 )}
             </nav>

@@ -10,6 +10,8 @@ import CustomerDisplay from '../pages/CustomerDisplay';
 import Products from '../pages/Products';
 import Sales from '../pages/Sales';
 import Purchases from '../pages/Purchases';
+import Expenses from '../pages/Expenses';
+import Deliveries from '../pages/Deliveries';
 
 // Pantalla provisional de inicio: el panel principal se incorpora en la última etapa.
 const Inicio = () => {
@@ -33,6 +35,7 @@ const Inicio = () => {
 const AppRouter = () => {
     const { isAuthenticated, user } = useAuth();
     const rol = user?.rol;
+    const isAdmin = rol === 'administrador';
     const isAtLeastEmpleado = rol === 'administrador' || rol === 'empleado';
 
     const Denied = () => (
@@ -68,6 +71,10 @@ const AppRouter = () => {
                     <Route path="/products" element={isAtLeastEmpleado ? <Products /> : <Denied />} />
                     <Route path="/sales" element={isAtLeastEmpleado ? <Sales /> : <Denied />} />
                     <Route path="/purchases" element={isAtLeastEmpleado ? <Purchases /> : <Denied />} />
+                    <Route path="/deliveries" element={isAtLeastEmpleado ? <Deliveries /> : <Denied />} />
+
+                    {/* Admin only */}
+                    <Route path="/expenses" element={isAdmin ? <Expenses /> : <Denied />} />
                 </Route>
             </Route>
 
