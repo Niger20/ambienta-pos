@@ -11,6 +11,7 @@ El repositorio contiene dos proyectos con dependencias y comandos independientes
 | [README general](README.md) | Visión del sistema, módulos, arquitectura, puesta en marcha y estado del proyecto. |
 | [App](app/README.md) | Frontend, navegación, roles, conexión HTTP/WebSocket, importaciones y compilación. |
 | [API](api/README.md) | Backend, base de datos, autenticación, rutas, flujos de negocio, Docker y operación. |
+| [Docker y Railway](docs/deployment.md) | Imagen de la API, PostgreSQL externo y CI/CD automático desde GitHub Actions. |
 
 ## Módulos
 
@@ -42,7 +43,7 @@ La cobertura de la interfaz y de la API varía por módulo: algunas entidades se
 | API | Node.js, TypeScript 5.9, Express 5 y arquitectura por capas. |
 | Persistencia | PostgreSQL, Prisma 7, `@prisma/adapter-pg` y `pg`. |
 | Seguridad y eventos | JWT, bcrypt, Helmet, CORS, express-rate-limit y `ws`. |
-| Contenedores | Dockerfile con Node.js 22 y Compose con PostgreSQL 15. |
+| Contenedores y despliegue | Docker multi-stage con Node.js 22, un servicio API que sirve React y CI/CD para Railway. PostgreSQL externo. |
 
 Las versiones instaladas quedan fijadas en el `package-lock.json` de cada proyecto.
 
@@ -51,6 +52,11 @@ Las versiones instaladas quedan fijadas en el `package-lock.json` de cada proyec
 ```text
 ambienta-pos/
 ├── README.md
+├── Dockerfile                  # API con frontend estático compilado
+├── compose.yaml                # Solo el servicio api; PostgreSQL externo
+├── railway.json                # Dockerfile y healthcheck para Railway
+├── .github/workflows/ci.yml    # Compilación, prueba Docker y deploy
+├── docs/deployment.md           # Activación y operación
 ├── app/
 │   ├── README.md
 │   ├── package.json
@@ -71,8 +77,6 @@ ambienta-pos/
     ├── package.json
     ├── prisma.config.ts
     ├── prisma/schema.prisma    # Modelo de datos
-    ├── Dockerfile
-    ├── docker-compose.yml
     └── src/
         ├── app.ts              # Entrada del servidor
         ├── domain/             # Entidades y enums
@@ -83,7 +87,7 @@ ambienta-pos/
         └── config/             # Entorno y adaptadores
 ```
 
-No hay un `package.json` en la raíz ni un comando único para iniciar ambos proyectos.
+No hay un `package.json` en la raíz. Para desarrollo, los comandos npm se ejecutan por proyecto; Docker compila ambos y ejecuta únicamente la API con los archivos estáticos de React.
 
 ## Arquitectura y comunicación
 
@@ -103,9 +107,9 @@ Las autorizaciones combinan REST y WebSocket en `/ws/autorizaciones`. La pantall
 - npm y las dependencias de cada proyecto.
 - PostgreSQL con un esquema compatible con [schema.prisma](api/prisma/schema.prisma).
 - Un usuario inicial existente con contraseña bcrypt para iniciar sesión.
-- Docker y Docker Compose si se ejecutan los contenedores.
+- Docker y Docker Compose si se ejecuta la API en un contenedor.
 
-**La preparación de PostgreSQL es un requisito externo actual:** no hay migraciones, seed ni SQL de inicialización versionados. Instalar dependencias o levantar Compose no crea las tablas, funciones y triggers de negocio. Consulta [la guía de la API](api/README.md#base-de-datos-y-prisma).
+**La preparación de PostgreSQL es un requisito externo actual:** no hay migraciones, seed ni SQL de inicialización versionados. Instalar dependencias o levantar Compose no crea una base ni sus tablas, funciones y triggers de negocio. Consulta [la guía de la API](api/README.md#base-de-datos-y-prisma).
 
 ## Inicio local
 
@@ -142,7 +146,7 @@ npm ci
 npm run dev
 ```
 
-Abre la URL que muestre Vite, normalmente `http://localhost:5173`. Para este arranque deja `VITE_API_URL` sin definir: Axios utiliza `/api` y Vite lo reenvía a `localhost:8080`. WebSocket usa el mismo proxy. La consulta auxiliar de sesión de caja también tiene `localhost:8080` como valor predeterminado.
+Abre la URL que muestre Vite, normalmente `http://localhost:5173`. Para este arranque deja `VITE_API_URL` sin definir: Axios utiliza `/api` y Vite lo reenvía a `localhost:8080`. La consulta de sesión de caja usa el mismo cliente Axios. WebSocket usa el proxy `/ws`.
 
 Inicia sesión con el usuario previamente provisionado. Desde la cabecera puedes abrir caja antes de cobrar en el POS.
 
@@ -153,10 +157,10 @@ Inicia sesión con el usuario previamente provisionado. Desde la cabecera puedes
 | App en desarrollo | `http://localhost:5173` por defecto en Vite. |
 | API para desarrollo con la app | `http://localhost:8080/api`, con el `.env` anterior. |
 | WebSocket local | `ws://localhost:8080/ws/autorizaciones`, a través de Vite desde la app. |
-| PostgreSQL en Compose | `localhost:5432`. |
-| API en Compose | `http://localhost:3000/api`; Compose fija el puerto 3000. |
+| PostgreSQL | Servicio externo; se configura con `POSTGRES_URL`. |
+| API y frontend estático en Compose | `http://localhost:3000`; puerto público configurable con `API_PORT`. |
 
-Si usas Compose con Vite, adapta los destinos `/api` y `/ws` en `app/vite.config.ts`. La consulta auxiliar de sesión requiere además revisar [la configuración del frontend](app/README.md#conexión-con-la-api).
+Compose sirve el frontend compilado desde la API. Si usas Vite contra la API de Compose, adapta los destinos `/api` y `/ws` en `app/vite.config.ts` al puerto 3000.
 
 ## Compilación y despliegue
 
@@ -169,7 +173,9 @@ Los comandos se ejecutan en la carpeta correspondiente:
 
 Para servir ambos desde Express, compila la app, coloca el contenido de `app/dist/` en `api/public/` o configura `PUBLIC_PATH` con su ubicación, compila la API y ejecuta `npm start` desde `api/`. Las rutas profundas de React necesitan fallback a `index.html`.
 
-El Dockerfile construye la API con el contexto de `api/`; no compila ni copia automáticamente `app/`. Consulta los pasos y las diferencias de producción en las guías de [app](app/README.md#compilación-y-despliegue) y [API](api/README.md#docker).
+El Dockerfile de la raíz compila React y la API en etapas separadas y copia solo las dependencias de producción, la API compilada y los archivos estáticos a la imagen final. Ejecuta Express como usuario `node`; no ejecuta Vite ni PostgreSQL. Compose declara únicamente `api` y recibe `POSTGRES_URL` para la base externa.
+
+GitHub Actions valida cada cambio y despliega automáticamente en Railway al subir a `main`. La activación inicial requiere crear el servicio y configurar `RAILWAY_TOKEN` y `RAILWAY_SERVICE_ID` en GitHub. Sigue la [guía de Docker y Railway](docs/deployment.md).
 
 ## Acceso y roles
 
@@ -182,10 +188,9 @@ Las rutas HTTP verifican JWT y la existencia del usuario. **La API todavía no a
 - Falta versionar la preparación reproducible de PostgreSQL y del primer usuario, incluida la función de recálculo de stock mínimo y los triggers necesarios.
 - La app permite cargar una orden como compra y marcarla recibida, pero el DTO de creación de compras todavía no persiste el `ordencompraid` que envía la interfaz.
 - Compras, importaciones y varias tareas de planilla se ejecutan en múltiples solicitudes. Un fallo intermedio puede dejar parte de la operación guardada.
-- `VITE_API_URL` tiene usos diferentes en Axios y en la consulta auxiliar de caja; revisa la guía de la app al configurar un backend externo o publicar.
 - Los campos de consecutivos fiscales y comerciales existen en el modelo. Su generación no aparece en el checkout del backend y puede depender de la base externa.
 - El dashboard suma las ventas activas sin excluir cotizaciones; sus totales pueden diferir de los reportes de gestión, que sí las excluyen.
-- No hay suites automatizadas de pruebas versionadas. La app tiene ESLint; la API no tiene script de lint ni de pruebas.
+- CI prueba el contenedor, HTTP, React y WebSocket con `scripts/docker-smoke.mjs`. No hay suites de negocio automatizadas; la API no tiene script de lint. El lint del frontend es informativo en CI por errores previos pendientes.
 
 ## Desarrollo y mantenimiento
 

@@ -4,9 +4,11 @@ import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient } from '../../generated/prisma/client'
 import { userContext } from './user-context'
 
-const connectionString = `${process.env.POSTGRES_URL}`
-
-const pool = new Pool({ connectionString })
+// Acotar la espera permite que el healthcheck detecte una base no disponible.
+const pool = new Pool({
+    connectionString: process.env.POSTGRES_URL,
+    connectionTimeoutMillis: 5_000,
+})
 
 // Auditoría: los triggers de la BD leen la variable de sesión `app.usuario_id`.
 // Cada conexión recuerda el usuario con el que quedó configurada y solo la

@@ -71,21 +71,15 @@ Las peticiones del resto de la app usan rutas como `/productos` o `/ventas/check
 | `/api` | `http://localhost:8080`. |
 | `/ws` | `ws://localhost:8080`, con soporte de WebSocket. |
 
-El comentario de Axios menciona el puerto 3000, pero el destino real del proxy versionado es **8080**. Si cambias el puerto de la API, actualiza ambos destinos de Vite.
+Si cambias el puerto de la API, actualiza ambos destinos de Vite.
 
 ### Variable de entorno y consulta de caja
 
 | Variable | Uso actual |
 | --- | --- |
-| `VITE_API_URL` | Reemplaza la base REST en Axios; también se usa como origen en una llamada directa desde `AuthContext`. |
+| `VITE_API_URL` | Reemplaza la base REST en Axios, incluida la consulta de caja de `AuthContext`. |
 
-Para Axios, un backend externo normalmente necesita incluir `/api`, por ejemplo `https://servidor.example/api`. Sin embargo, `refreshSession` en [AuthContext.tsx](src/context/AuthContext.tsx) construye su consulta de esta manera:
-
-```ts
-`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/sesiones/active`
-```
-
-Esto deja una incompatibilidad pendiente: con la URL anterior, la consulta auxiliar termina en `/api/api/sesiones/active`; sin variable, siempre consulta `localhost:8080`, incluso en una compilación publicada. Configurar solamente `VITE_API_URL` no resuelve ambos clientes a la vez. Antes de publicar o usar otro puerto/origen, hay que unificar esa consulta con Axios o ajustar su composición de URL.
+Para un backend externo, incluye `/api`, por ejemplo `https://servidor.example/api`. `refreshSession` en [AuthContext.tsx](src/context/AuthContext.tsx) usa `api.get('/sesiones/active')`, con la misma base y el mismo interceptor de autenticación que el resto de las solicitudes. En el contenedor y en Railway, deja `VITE_API_URL` sin definir: Express sirve el frontend y `/api` en el mismo origen.
 
 Las variables `VITE_*` se incorporan al frontend al compilar y son visibles para el navegador. Los secretos JWT y credenciales de PostgreSQL pertenecen a la API.
 
@@ -226,16 +220,17 @@ Al iniciar, `AuthContext` restaura el token y usuario guardados. La validez del 
 npm run build
 ```
 
-El resultado es `app/dist/`. La configuración actual no copia ese contenido a la API.
+El resultado es `app/dist/`. El build local de Vite no lo copia a la API; el Dockerfile de la raíz sí lo incorpora como `public/` en la imagen de la API.
 
 Para un despliegue conjunto:
 
-1. Revisa la consulta auxiliar de caja descrita en la sección de conexión.
-2. Compila la app con la configuración del entorno de destino.
-3. Copia el contenido de `dist/` a `api/public/`, o configura `PUBLIC_PATH` con la ubicación real de la compilación. Si inicias la API desde `api/`, `PUBLIC_PATH=../app/dist` permite servir el build local sin copiarlo.
-4. Compila e inicia la API. Express ofrece `/api`, WebSocket y fallback a `index.html` en el mismo servidor.
+1. Compila la app con la configuración del entorno de destino.
+2. Copia el contenido de `dist/` a `api/public/`, o configura `PUBLIC_PATH` con la ubicación real de la compilación. Si inicias la API desde `api/`, `PUBLIC_PATH=../app/dist` permite servir el build local sin copiarlo.
+3. Compila e inicia la API. Express ofrece `/api`, WebSocket y fallback a `index.html` en el mismo servidor.
 
-Para alojarla separada, configura la base REST, CORS en la API, el reenvío WebSocket y un fallback de las rutas del navegador a `index.html`. El proxy de desarrollo de Vite no se incluye en el build. No hay un Dockerfile del frontend ni un proceso automático de empaquetado conjunto versionado.
+En Docker y Railway estos pasos los automatiza el [Dockerfile de la raíz](../Dockerfile). Se ejecuta únicamente la API: no hay un contenedor ni un proceso Vite para el frontend. Consulta la [guía de CI/CD y Railway](../docs/deployment.md).
+
+Para alojarla separada, configura la base REST, CORS en la API, el reenvío WebSocket y un fallback de las rutas del navegador a `index.html`. El proxy de desarrollo de Vite no se incluye en el build.
 
 ## Verificación y problemas frecuentes
 
@@ -246,7 +241,7 @@ Para cambios de código, ejecuta `npm run build` y `npm run lint`, y prueba el m
 | `ECONNREFUSED` en Vite | API iniciada en 8080 y destinos de `vite.config.ts`. |
 | Login con error | Usuario provisionado, contraseña, base preparada y respuesta de `/api/auth/login`. |
 | Regreso a login | Token vencido o inválido; el interceptor limpia credenciales ante `401`. |
-| No aparece la caja activa | URL construida por `refreshSession`, puerto y posible `/api/api`. |
+| No aparece la caja activa | Respuesta de `/api/sesiones/active`, token y sesión abierta del usuario. |
 | WebSocket desconectado | Proxy de `/ws`, origen de la página y `wss:` si se usa HTTPS. |
 | Pantalla del cliente vacía | Ventana abierta desde el POS, mismo origen y canal `BroadcastChannel`. |
 | Error al recargar `/sales` u otra ruta | Fallback del servidor a `index.html`. |

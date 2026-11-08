@@ -2,7 +2,7 @@ import axios from 'axios';
 
 // En producción: el frontend está servido por el mismo backend,
 // así que /api funciona como URL relativa (mismo origen).
-// En desarrollo: Vite hace proxy de /api → http://localhost:3000/api automáticamente.
+// En desarrollo: Vite hace proxy de /api → http://localhost:8080/api automáticamente.
 // Solo define VITE_API_URL si apuntas a un backend externo.
 const api = axios.create({
     baseURL: import.meta.env.VITE_API_URL || '/api',

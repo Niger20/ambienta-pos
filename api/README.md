@@ -8,11 +8,11 @@ Consulta el [README general](../README.md) para la visión completa y el [README
 
 | Tecnología | Versión declarada / configuración |
 | --- | --- |
-| Node.js | `>=20.19`; Docker utiliza `node:22-alpine`. |
+| Node.js | `>=20.19`; Docker y CI utilizan Node.js 22. |
 | TypeScript | `^5.9.3`. |
 | Express | `^5.2.1`. |
 | Prisma, cliente y adaptador PostgreSQL | `^7.3.0`. |
-| PostgreSQL | Imagen `postgres:15` en Compose. |
+| PostgreSQL | Servicio externo mediante `POSTGRES_URL`; no se incluye en la imagen ni en Compose. |
 | `pg` | Pool de conexiones PostgreSQL. |
 | bcrypt / jsonwebtoken | Hash de contraseñas y JWT. |
 | Helmet / CORS / express-rate-limit | Cabeceras, orígenes y limitación del login. |
@@ -22,7 +22,6 @@ Consulta el [README general](../README.md) para la visión completa y el [README
 api/
 ├── prisma/schema.prisma
 ├── prisma.config.ts
-├── Dockerfile
 ├── docker-compose.yml
 └── src/
     ├── app.ts
@@ -74,10 +73,6 @@ NODE_ENV=development
 # Opcional: ampliar los orígenes CORS, separados por comas
 ALLOWED_ORIGINS=http://localhost:5173
 
-# Solo para Docker Compose
-POSTGRES_USER=postgres
-POSTGRES_PASSWORD=TU_PASSWORD
-POSTGRES_DB=ambienta_pos
 ```
 
 | Variable | Comportamiento |
@@ -88,9 +83,6 @@ POSTGRES_DB=ambienta_pos
 | `POSTGRES_URL` | Cadena usada por Prisma CLI y por el pool de la aplicación. |
 | `ALLOWED_ORIGINS` | Agrega orígenes a la lista CORS. |
 | `NODE_ENV` | Entorno de ejecución; Compose lo establece en `production`. |
-| `POSTGRES_USER` | Usuario de Compose; predeterminado `postgres`. |
-| `POSTGRES_PASSWORD` | Contraseña obligatoria de Compose. |
-| `POSTGRES_DB` | Base de Compose; predeterminada `lacatracha` si se omite. |
 
 `DATABASE_URL` no se usa. Codifica los caracteres reservados de las credenciales en `POSTGRES_URL`. El archivo `.env` está ignorado por Git; la plantilla `.env.template` puede existir localmente, pero no está versionada y no sustituye la configuración completa anterior.
 
@@ -520,34 +512,31 @@ La presencia del contexto no crea los triggers ni garantiza auditoría si la bas
 
 ## Docker
 
-Desde `api/`, configura al menos `POSTGRES_PASSWORD` y `JWT_SEED` en `.env`. Define `POSTGRES_DB` para evitar el nombre heredado predeterminado:
+Desde la raíz, copia `.env.example` a `.env` y configura `POSTGRES_URL` para tu base externa y `JWT_SEED`:
 
 ```bash
-# Solo PostgreSQL
-docker compose up -d postgres-db
-
-# API y base
-docker compose up -d --build
+# Solo API, con frontend estático servido por Express
+docker compose up -d --build --wait --wait-timeout 120
 
 # Logs y estado
 docker compose logs -f
 docker compose ps
 
-# Detener; conserva el volumen de datos
+# Detener el servicio
 docker compose down
 ```
 
-Compose levanta `postgres-db` en 5432 y `la-catracha-app` en 3000. Los nombres `la-catracha-app` y `lacatracha` son heredados de la configuración. Los datos se guardan en `postgres-data`.
+El único servicio de Compose es `api`, publicado en 3000 por defecto. No crea una base ni volúmenes de PostgreSQL. Los archivos antiguos `api/Dockerfile` y `api/docker-compose.yml` fueron sustituidos por el Dockerfile y `compose.yaml` de la raíz.
 
-La API recibe una `POSTGRES_URL` interna con host `postgres-db`; Compose fija `PORT=3000`, `PUBLIC_PATH=public` y `NODE_ENV=production`. El archivo actual no transmite `ALLOWED_ORIGINS` al servicio. La base inicial queda sin el esquema de negocio; no se ejecutan migraciones ni seed, y `depends_on` no sustituye un healthcheck de disponibilidad.
+Compose inyecta `POSTGRES_URL`, `JWT_SEED`, `ALLOWED_ORIGINS`, `PORT=3000`, `PUBLIC_PATH=public` y `NODE_ENV=production`. `API_PORT` cambia el puerto público. El healthcheck `/api/health` verifica conexión a PostgreSQL y devuelve 503 si falla. No crea ni verifica el esquema de negocio.
 
-El Dockerfile solo usa el contexto de `api/`, instala dependencias y compila el backend. Para incluir el frontend, compílalo por separado y coloca los archivos en `api/public/` antes de construir la imagen. No hay un paso que construya `app/` automáticamente.
+El Dockerfile multi-stage de la raíz genera Prisma, compila la API y React y copia el frontend compilado a `public/`. La imagen final ejecuta únicamente `node dist/app.js` como usuario `node`. PostgreSQL y el servidor de desarrollo del frontend no se ejecutan en ella. Consulta la [guía de Docker y Railway](../docs/deployment.md) para activar CI/CD automático.
 
 ## Servir el frontend y desplegar
 
 Express sirve `PUBLIC_PATH` y responde con `index.html` para rutas ajenas a `/api`. Una API sin frontend puede atender sus endpoints aunque no tenga ese archivo; abrir una ruta de la app requiere que exista el build.
 
-Para servir el build local sin copiarlo, configura `PUBLIC_PATH=../app/dist` al iniciar desde `api/`. Para empaquetarlo en el contenedor actual, usa `public/` dentro del contexto de la API. Revisa antes la inconsistencia de la consulta de caja explicada en [la guía de la app](../app/README.md#conexión-con-la-api).
+Para servir el build local sin copiarlo, configura `PUBLIC_PATH=../app/dist` al iniciar desde `api/`. El Dockerfile de la raíz automatiza la compilación y copia a `public/`; la consulta de caja usa el mismo cliente Axios que el resto de la app.
 
 En un despliegue tras proxy, configura HTTP/WebSocket, el origen de la app, `POSTGRES_URL`, el secreto JWT y el directorio estático según el entorno. El proceso actual escucha HTTP; HTTPS puede terminar en el proxy de alojamiento.
 

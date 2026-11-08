@@ -1,0 +1,17 @@
+.git/
+.github/
+.idea/
+.vscode/
+**/node_modules/
+**/dist/
+**/src/generated/
+**/.env
+**/.env.*
+**/keys/
+**/*.pem
+**/*.key
+**/*.log
+**/*.tsbuildinfo
+**/.eslint-report.json
+docs/
+scripts/

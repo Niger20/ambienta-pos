@@ -5,6 +5,7 @@ import { CorsAdapter } from '../config/cors.adapter';
 import { HelmetAdapter } from '../config/helmet.adapter';
 import { RateLimitAdapter } from '../config/rate-limit.adapter';
 import { WsAdapter, AutorizacionGateway } from '../config/ws.adapter';
+import prisma from '../data/postgres';
 
 interface Options {
     port: number;
@@ -44,6 +45,17 @@ export class Server {
         //* Body parsing
         this.app.use(express.json({ limit: '1mb' }));
         this.app.use(express.urlencoded({ extended: true, limit: '1mb' }));
+
+        //* Disponibilidad HTTP y conexión PostgreSQL; no verifica el esquema de negocio.
+        this.app.get('/api/health', async (_req, res) => {
+            res.set('Cache-Control', 'no-store');
+            try {
+                await prisma.$queryRaw`SELECT 1`;
+                res.json({ status: 'ok' });
+            } catch {
+                res.status(503).json({ status: 'unavailable' });
+            }
+        });
 
         //* Archivos estáticos del frontend (React/Vite build)
         this.app.use(express.static(this.publicPath));

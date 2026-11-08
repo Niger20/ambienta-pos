@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
+import api from '../api/axios';
 
 // Define the shape of our User and AuthContext data. 
 // Note: Adjust the interface based on your actual API user response.
@@ -61,23 +62,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const refreshSession = async () => {
         if (!user) return;
         try {
-            // Import api dynamically or use fetch to avoid circular dependency if needed,
-            // but for simplicity assuming we can fetch here. We will use the same logic as Header.
-            const token = localStorage.getItem('token');
-            const res = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:8080'}/api/sesiones/active`, {
-                headers: { 'Authorization': `Bearer ${token}` }
-            });
-            if (res.ok) {
-                const data = await res.json();
-                const sessionData = Array.isArray(data) ? data[0] : data;
-                if (sessionData && (sessionData.id || sessionData.sesionid)) {
-                    setActiveSession({
-                        id: sessionData.id ?? sessionData.sesionid,
-                        montoinicial: Number(sessionData.montoinicial),
-                        montofinalsistema: sessionData.montofinalsistema != null ? Number(sessionData.montofinalsistema) : undefined
-                    });
-                    return;
-                }
+            const { data } = await api.get('/sesiones/active');
+            const sessionData = Array.isArray(data) ? data[0] : data;
+            if (sessionData && (sessionData.id || sessionData.sesionid)) {
+                setActiveSession({
+                    id: sessionData.id ?? sessionData.sesionid,
+                    montoinicial: Number(sessionData.montoinicial),
+                    montofinalsistema: sessionData.montofinalsistema != null ? Number(sessionData.montofinalsistema) : undefined
+                });
+                return;
             }
             setActiveSession(null);
         } catch (error) {

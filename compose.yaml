@@ -1,0 +1,17 @@
+services:
+  api:
+    image: ${API_IMAGE:-ambienta-pos-api:local}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    init: true
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 3000
+      PUBLIC_PATH: public
+      JWT_SEED: ${JWT_SEED:?Define JWT_SEED en .env}
+      POSTGRES_URL: ${POSTGRES_URL:?Define POSTGRES_URL para tu base externa}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS:-http://localhost:3000}
+    ports:
+      - "${API_PORT:-3000}:3000"
