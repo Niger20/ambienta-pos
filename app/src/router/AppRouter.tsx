@@ -12,6 +12,7 @@ import Sales from '../pages/Sales';
 import Purchases from '../pages/Purchases';
 import Expenses from '../pages/Expenses';
 import Sessions from '../pages/Sessions';
+import Reportes from '../pages/Reportes';
 import Deliveries from '../pages/Deliveries';
 import HR from '../pages/HR';
 
@@ -79,6 +80,7 @@ const AppRouter = () => {
                     <Route path="/expenses" element={isAdmin ? <Expenses /> : <Denied />} />
                     <Route path="/rrhh" element={isAdmin ? <HR /> : <Denied />} />
                     <Route path="/sesiones" element={isAdmin ? <Sessions /> : <Denied />} />
+                    <Route path="/reportes" element={isAdmin ? <Reportes /> : <Denied />} />
                 </Route>
             </Route>
 
