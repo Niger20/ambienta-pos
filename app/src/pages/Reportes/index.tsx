@@ -4,7 +4,9 @@ import { SectionNav, SectionNavToggle } from '../../components/SectionNav';
 import type { ReactNode } from 'react';
 import type { Tab } from './types';
 import {
-    IconReportDoc, IconPackage, IconTrendingUp, IconHourglass, IconArrowDownCircle, IconArrowUpCircle, IconReceipt,
+    IconReportDoc, IconPackage, IconCalendar, IconLayers, IconAward, IconBook, IconReturn, IconTrendingUp,
+    IconHourglass, IconArrowDownCircle, IconArrowUpCircle, IconReceipt, IconScale, IconAlertTriangle,
+    IconArchive, IconTrendingDown, IconUsers, IconBriefcase, IconShield,
 } from './icons';
 import { useUtilidadProductoReport } from './useUtilidadProductoReport';
 import { useCxcReport } from './useCxcReport';
@@ -15,7 +17,10 @@ import { CxcTab } from './CxcTab';
 import { CxpTab } from './CxpTab';
 import { GastosTab } from './GastosTab';
 import { EstadoResultadosReport } from './gestion/EstadoResultadosReport';
+import { VentasPeriodoReport, VentasCategoriaReport, TopClientesReport, LibroVentasReport, DevolucionesReport } from './gestion/VentasReports';
 import { FlujoCajaReport, AntiguedadSaldosReport } from './gestion/FinanzasReports';
+import { ValorizacionReport, PorVencerReport, SinMovimientoReport, MermasReport } from './gestion/InventarioReports';
+import { CostoLaboralReport, PasivoLaboralReport, BitacoraReport } from './gestion/RrhhControlReports';
 
 interface Item { key: Tab; label: string; icon: ReactNode; /** El reporte depende del rango de fechas global. */ fechas: boolean }
 interface Grupo { label: string; items: Item[] }
@@ -29,6 +34,16 @@ const MENU: Grupo[] = [
         ],
     },
     {
+        label: 'Ventas',
+        items: [
+            { key: 'ventasPeriodo', label: 'Ventas por período', icon: <IconCalendar />, fechas: true },
+            { key: 'ventasCategoria', label: 'Por categoría, modalidad y cajero', icon: <IconLayers />, fechas: true },
+            { key: 'topClientes', label: 'Top clientes', icon: <IconAward />, fechas: true },
+            { key: 'libroVentas', label: 'Libro de ventas', icon: <IconBook />, fechas: true },
+            { key: 'devoluciones', label: 'Devoluciones y cambios', icon: <IconReturn />, fechas: true },
+        ],
+    },
+    {
         label: 'Caja y finanzas',
         items: [
             { key: 'flujoCaja', label: 'Flujo de caja', icon: <IconTrendingUp />, fechas: true },
@@ -37,6 +52,26 @@ const MENU: Grupo[] = [
             { key: 'cxp', label: 'Cuentas por pagar', icon: <IconArrowUpCircle />, fechas: true },
             { key: 'gastos', label: 'Gastos operativos', icon: <IconReceipt />, fechas: false },
         ],
+    },
+    {
+        label: 'Inventario',
+        items: [
+            { key: 'valorizacion', label: 'Valorización y rotación', icon: <IconScale />, fechas: false },
+            { key: 'porVencer', label: 'Productos por vencer', icon: <IconAlertTriangle />, fechas: false },
+            { key: 'sinMovimiento', label: 'Inventario sin movimiento', icon: <IconArchive />, fechas: false },
+            { key: 'mermas', label: 'Mermas y pérdidas', icon: <IconTrendingDown />, fechas: true },
+        ],
+    },
+    {
+        label: 'Recursos humanos',
+        items: [
+            { key: 'costoLaboral', label: 'Costo laboral', icon: <IconUsers />, fechas: true },
+            { key: 'pasivoLaboral', label: 'Pasivo laboral', icon: <IconBriefcase />, fechas: false },
+        ],
+    },
+    {
+        label: 'Control',
+        items: [{ key: 'bitacora', label: 'Bitácora de auditoría', icon: <IconShield />, fechas: true }],
     },
 ];
 
@@ -103,11 +138,23 @@ const Reportes = () => {
                     filteredAndSortedUtilidadProducto={filteredAndSortedUtilidadProducto}
                 />
             );
+            case 'ventasPeriodo': return <VentasPeriodoReport {...rango} />;
+            case 'ventasCategoria': return <VentasCategoriaReport {...rango} />;
+            case 'topClientes': return <TopClientesReport {...rango} />;
+            case 'libroVentas': return <LibroVentasReport {...rango} />;
+            case 'devoluciones': return <DevolucionesReport {...rango} />;
             case 'flujoCaja': return <FlujoCajaReport {...rango} />;
             case 'antiguedad': return <AntiguedadSaldosReport />;
             case 'cxc': return <CxcTab cxcData={cxcData} clientesMap={clientesMap} cxcSummary={cxcSummary} />;
             case 'cxp': return <CxpTab cxpData={cxpData} proveedoresMap={proveedoresMap} cxpSummary={cxpSummary} />;
             case 'gastos': return <GastosTab gastosData={gastosData} gastosSummary={gastosSummary} />;
+            case 'valorizacion': return <ValorizacionReport />;
+            case 'porVencer': return <PorVencerReport />;
+            case 'sinMovimiento': return <SinMovimientoReport />;
+            case 'mermas': return <MermasReport {...rango} />;
+            case 'costoLaboral': return <CostoLaboralReport {...rango} />;
+            case 'pasivoLaboral': return <PasivoLaboralReport />;
+            case 'bitacora': return <BitacoraReport {...rango} />;
         }
     })();
 
