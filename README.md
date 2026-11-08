@@ -11,7 +11,7 @@ El repositorio contiene dos proyectos con dependencias y comandos independientes
 | [README general](README.md) | Visión del sistema, módulos, arquitectura, puesta en marcha y estado del proyecto. |
 | [App](app/README.md) | Frontend, navegación, roles, conexión HTTP/WebSocket, importaciones y compilación. |
 | [API](api/README.md) | Backend, base de datos, autenticación, rutas, flujos de negocio, Docker y operación. |
-| [Docker y Railway](docs/deployment.md) | Imagen de la API, PostgreSQL externo y CI/CD automático desde GitHub Actions. |
+| [Docker y Railway](docs/deployment.md) | Imagen de la API, versiones conservadas en GHCR, PostgreSQL externo y CI/CD desde GitHub Actions. |
 
 ## Módulos
 
@@ -175,7 +175,7 @@ Para servir ambos desde Express, compila la app, coloca el contenido de `app/dis
 
 El Dockerfile de la raíz compila React y la API en etapas separadas y copia solo las dependencias de producción, la API compilada y los archivos estáticos a la imagen final. Ejecuta Express como usuario `node`; no ejecuta Vite ni PostgreSQL. Compose declara únicamente `api` y recibe `POSTGRES_URL` para la base externa.
 
-GitHub Actions valida cada cambio y despliega automáticamente en Railway al subir a `main`. La activación inicial requiere crear el servicio y configurar `RAILWAY_TOKEN` y `RAILWAY_SERVICE_ID` en GitHub. Sigue la [guía de Docker y Railway](docs/deployment.md).
+GitHub Actions valida cada cambio, conserva la imagen probada en GitHub Container Registry y despliega automáticamente en Railway al subir a `main`. Las versiones se etiquetan como `ghcr.io/niger20/ambienta-pos:ambienta-pos-AAAA-MM-DD-CODIGO`, con fecha de Nicaragua y el SHA corto del commit. La activación inicial requiere crear el servicio y configurar `RAILWAY_TOKEN` y `RAILWAY_SERVICE_ID` en GitHub. Sigue la [guía de Docker y Railway](docs/deployment.md).
 
 ## Acceso y roles
 

@@ -47,10 +47,13 @@ jobs:
         run: echo '::warning::El frontend tiene errores de ESLint pendientes. Consulta el paso de lint.'
 
   docker:
-    name: Probar imagen Docker
+    name: Probar y conservar imagen Docker
     needs: build
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
     # Base efímera solo para CI; no forma parte de la imagen ni del despliegue.
     services:
       postgres:
@@ -79,12 +82,26 @@ jobs:
           node-version: '22'
       - name: Preparar Buildx
         uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4
+      - name: Nombrar versión de la imagen
+        id: image
+        shell: bash
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY,,}"
+          build_date="$(TZ=America/Managua date +'%Y-%m-%d')"
+          version="ambienta-pos-${build_date}-${GITHUB_SHA:0:7}"
+          echo "name=$image" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "ref=$image:$version" >> "$GITHUB_OUTPUT"
       - name: Construir imagen de prueba
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
           context: .
           load: true
           tags: ${{ env.API_IMAGE }}
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.version=${{ steps.image.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Validar Compose y arrancar API
@@ -97,6 +114,21 @@ jobs:
           timeout 120s bash -c 'until [ "$(docker inspect --format "{{.State.Health.Status}}" ambienta-api-ci)" = healthy ]; do sleep 2; done'
       - name: Probar API, frontend y WebSocket
         run: node scripts/docker-smoke.mjs
+      - name: Iniciar sesión en GitHub Container Registry
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: docker/login-action@8aa5831fb8d48d8f76594c7ddde61ae58019f550 # v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Conservar la imagen validada en GitHub
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        env:
+          VERSIONED_IMAGE: ${{ steps.image.outputs.ref }}
+        run: |
+          docker tag "$API_IMAGE" "$VERSIONED_IMAGE"
+          docker push "$VERSIONED_IMAGE"
+          echo "Imagen publicada: \`$VERSIONED_IMAGE\`" >> "$GITHUB_STEP_SUMMARY"
       - name: Logs de diagnóstico
         if: failure()
         run: docker logs --tail=100 ambienta-api-ci
