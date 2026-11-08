@@ -93,8 +93,9 @@ const Sidebar = ({ isOpen, onClose, collapsed }: {
             <nav className="sidebar-nav" style={{ padding: collapsed ? '1.5rem 0.5rem' : '1.5rem 1rem' }}>
                 {/* General — all roles */}
                 <NavSection label="General" collapsed={collapsed} />
-                <SidebarLink to="/"          label="Inicio"         icon={icons.dashboard}  onClose={onClose} collapsed={collapsed} />
+                <SidebarLink to="/dashboard"  label="Dashboard"      icon={icons.dashboard}  onClose={onClose} collapsed={collapsed} />
                 <SidebarLink to="/pos"        label="Punto de Venta" icon={icons.pos}        onClose={onClose} collapsed={collapsed} />
+
                 {/* Gestión — admin & empleado */}
                 {isAtLeastEmpleado && (
                     <>
@@ -105,6 +106,7 @@ const Sidebar = ({ isOpen, onClose, collapsed }: {
                         <SidebarLink to="/deliveries" label="Repartidores"  icon={icons.deliveries} onClose={onClose} collapsed={collapsed} />
                     </>
                 )}
+
                 {/* Administración — admin only */}
                 {isAdmin && (
                     <>
@@ -113,8 +115,15 @@ const Sidebar = ({ isOpen, onClose, collapsed }: {
                         <SidebarLink to="/reportes"  label="Reportes"  icon={icons.reportes}  onClose={onClose} collapsed={collapsed} />
                         <SidebarLink to="/rrhh"      label="Recursos Humanos" icon={icons.rrhh} onClose={onClose} collapsed={collapsed} />
                         <SidebarLink to="/sesiones"  label="Sesiones"  icon={icons.sesiones}  onClose={onClose} collapsed={collapsed} />
+                        <SidebarLink to="/usuarios"  label="Usuarios"  icon={icons.usuarios}  onClose={onClose} collapsed={collapsed} />
                     </>
                 )}
+
+                {/* Configuración — pushed to the bottom of the navigation area */}
+                <div style={{ marginTop: 'auto', paddingTop: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <NavSection label="Configuración" collapsed={collapsed} />
+                    <SidebarLink to="/settings" label="Ajustes" icon={icons.settings} onClose={onClose} collapsed={collapsed} />
+                </div>
             </nav>
 
             {/* ── User Footer ── */}

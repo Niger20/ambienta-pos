@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 
 // Pages
 import Login from '../pages/Login';
+import Dashboard from '../pages/Dashboard';
 import POS from '../pages/POS';
 import CustomerDisplay from '../pages/CustomerDisplay';
 import Products from '../pages/Products';
@@ -13,21 +14,10 @@ import Purchases from '../pages/Purchases';
 import Expenses from '../pages/Expenses';
 import Sessions from '../pages/Sessions';
 import Reportes from '../pages/Reportes';
+import Users from '../pages/Users';
 import Deliveries from '../pages/Deliveries';
+import Settings from '../pages/Settings';
 import HR from '../pages/HR';
-
-// Pantalla provisional de inicio: el panel principal se incorpora en la última etapa.
-const Inicio = () => {
-    const { user } = useAuth();
-    return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', gap: '1rem', textAlign: 'center' }}>
-            <h2 style={{ fontWeight: 700, fontSize: '1.3rem' }}>Ambienta POS</h2>
-            <p style={{ color: 'var(--text-secondary)' }}>
-                Sesión iniciada como {user?.nombreusuario ?? 'usuario'}. Los módulos se habilitan en el menú conforme avanza la reconstrucción.
-            </p>
-        </div>
-    );
-};
 
 /**
  * Role-based access:
@@ -46,7 +36,7 @@ const AppRouter = () => {
             <div style={{ fontSize: '3rem' }}>🔒</div>
             <h2 style={{ fontWeight: 700, fontSize: '1.3rem' }}>Acceso denegado</h2>
             <p style={{ color: 'var(--text-secondary)' }}>No tienes permisos para acceder a esta sección.</p>
-            <a href="/" style={{ color: 'var(--accent-primary)', fontWeight: 600, textDecoration: 'none' }}>Volver al inicio</a>
+            <a href="/dashboard" style={{ color: 'var(--accent-primary)', fontWeight: 600, textDecoration: 'none' }}>Volver al Dashboard</a>
         </div>
     );
 
@@ -60,15 +50,17 @@ const AppRouter = () => {
 
             {/* Protected Routes encapsulated in MainLayout */}
             <Route element={<ProtectedRoute />}>
-            {/* Customer display — full screen, no layout */}
-            <Route path="/pos/cliente" element={<CustomerDisplay />} />
+                {/* Customer display — full screen, no layout */}
+                <Route path="/pos/cliente" element={<CustomerDisplay />} />
 
                 <Route element={<MainLayout />}>
-                    {/* Pantalla provisional de inicio */}
-                    <Route path="/" element={<Inicio />} />
+                    {/* Default redirect */}
+                    <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
                     {/* ALL roles */}
+                    <Route path="/dashboard" element={<Dashboard />} />
                     <Route path="/pos" element={<POS />} />
+                    <Route path="/settings" element={<Settings />} />
 
                     {/* Empleado + Admin */}
                     <Route path="/products" element={isAtLeastEmpleado ? <Products /> : <Denied />} />
@@ -81,11 +73,12 @@ const AppRouter = () => {
                     <Route path="/rrhh" element={isAdmin ? <HR /> : <Denied />} />
                     <Route path="/sesiones" element={isAdmin ? <Sessions /> : <Denied />} />
                     <Route path="/reportes" element={isAdmin ? <Reportes /> : <Denied />} />
+                    <Route path="/usuarios" element={isAdmin ? <Users /> : <Denied />} />
                 </Route>
             </Route>
 
             {/* Fallback */}
-            <Route path="*" element={<Navigate to="/" replace />} />
+            <Route path="*" element={<Navigate to="/dashboard" replace />} />
         </Routes>
     );
 };
