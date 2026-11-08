@@ -1,155 +1,161 @@
-# Ambienta POS — API REST
+# Ambienta POS — API
 
-Backend en desarrollo de Ambienta POS, construido con Node.js, TypeScript, Express y Prisma sobre PostgreSQL. Estado revisado el **11 de octubre de 2026**, con el código del commit `162d059` como referencia.
+Backend REST de Ambienta POS. Implementa autenticación, catálogos, ventas, compras, inventario, caja, cuentas, entregas, gastos, reportes y recursos humanos sobre PostgreSQL. Comparte el servidor HTTP con un gateway WebSocket para autorizaciones y puede servir la compilación de la app React.
 
-## Funcionalidades actuales
-
-- Autenticación JWT y administración de usuarios.
-- CRUD de productos, categorías, subcategorías, unidades de medida, clientes, categorías de clientes y proveedores.
-- Búsqueda de productos por nombre y código de barras.
-- Compras: cabeceras, líneas, edición, anulación y propuestas de reposición.
-- Órdenes de compra: CRUD de cabeceras y productos, con filtros por proveedor, estado y orden.
-- Costos adicionales de compras: CRUD de conceptos y montos, con filtro por compra.
-- Registro de líneas de compra con costo promedio ponderado, incremento de stock y movimiento asociado dentro de una transacción.
-- Ajustes de stock al editar líneas de compra; anulación que retira las cantidades compradas y anula cuentas por pagar asociadas. Si no hay stock suficiente, la transacción se rechaza.
-- Movimientos de inventario manuales y consulta por producto; relaciones entre movimientos y compras.
-- Gateway WebSocket de autorizaciones con suscripciones y métodos de notificación. Las rutas REST de autorizaciones todavía no están implementadas.
+Consulta el [README general](../README.md) para la visión completa y el [README de la app](../app/README.md) para la integración con el frontend.
 
 ## Tecnologías y arquitectura
 
 | Tecnología | Versión declarada / configuración |
 | --- | --- |
-| Node.js | >= 20.19; Docker usa `node:22-alpine` |
-| TypeScript | ^5.9.3 |
-| Express | ^5.2.1 |
-| Prisma y adaptador PostgreSQL | ^7.3.0 |
-| PostgreSQL | Imagen `postgres:15` en Docker Compose |
-| bcrypt / jsonwebtoken | ^6.0.0 / ^9.0.3 |
-| ws | ^8.19.0 |
-| Helmet / express-rate-limit / CORS | ^8.1.0 / ^8.3.1 / ^2.8.6 |
+| Node.js | `>=20.19`; Docker utiliza `node:22-alpine`. |
+| TypeScript | `^5.9.3`. |
+| Express | `^5.2.1`. |
+| Prisma, cliente y adaptador PostgreSQL | `^7.3.0`. |
+| PostgreSQL | Imagen `postgres:15` en Compose. |
+| `pg` | Pool de conexiones PostgreSQL. |
+| bcrypt / jsonwebtoken | Hash de contraseñas y JWT. |
+| Helmet / CORS / express-rate-limit | Cabeceras, orígenes y limitación del login. |
+| `ws` | WebSocket de autorizaciones. |
 
 ```text
 api/
 ├── prisma/schema.prisma
 ├── prisma.config.ts
-├── src/
-│   ├── app.ts
-│   ├── domain/             # Entidades (entitites/) y enums
-│   ├── application/        # DTOs, casos de uso, servicios y contratos
-│   ├── infrastructure/     # Datasources/repositories, auth, seguridad y WebSocket
-│   ├── presentation/       # Rutas, controladores y servidor HTTP
-│   ├── data/postgres/      # Prisma singleton y contexto de auditoría
-│   └── config/             # Entorno y reexports de adaptadores
 ├── Dockerfile
 ├── docker-compose.yml
-└── package.json
+└── src/
+    ├── app.ts
+    ├── domain/
+    │   ├── entitites/           # Entidades; se conserva este nombre de carpeta
+    │   └── enums/
+    ├── application/
+    │   ├── dtos/               # Validación de entradas
+    │   ├── use-cases/          # Operaciones de negocio
+    │   ├── services/           # Reglas compartidas, como costo promedio
+    │   ├── repositories/      # Contratos de repositorios
+    │   └── datasources/       # Contratos de persistencia
+    ├── infrastructure/
+    │   ├── datasource/        # Prisma, transacciones, helpers y reportes
+    │   ├── repositories/      # Implementaciones de los contratos
+    │   ├── middlewares/       # Autenticación
+    │   ├── factories/         # Construcción de dependencias
+    │   ├── auth/              # JWT y bcrypt
+    │   ├── security/          # CORS, Helmet y límites
+    │   └── websocket/         # Adaptador y gateway
+    ├── presentation/          # Servidor, routers y controladores por recurso
+    ├── data/postgres/         # Pool, cliente Prisma y contexto de usuario
+    ├── config/                # Entorno y reexports de adaptadores
+    └── generated/prisma/      # Cliente generado, ignorado por Git
 ```
 
-Flujo habitual: `ruta → controlador → caso de uso → repositorio → datasource → Prisma → PostgreSQL`. Las transacciones viven en los datasources. El cliente Prisma se genera en `src/generated/prisma/`.
+El flujo habitual es `ruta → controlador → caso de uso → repositorio → datasource → Prisma → PostgreSQL`. Los routers construyen e inyectan sus dependencias. Los DTOs validan los cuerpos y consultas; los datasources concentran las transacciones y el acceso a datos. Los reportes avanzados usan consultas de lectura específicas desde su controlador.
 
-## Variables de entorno
+## Instalación y configuración
 
-Crea `.env` en **`api/`**, antes de instalar dependencias:
+Requisitos: Node.js, npm, PostgreSQL preparado y un usuario inicial existente. Para trabajar también con la app, una versión Node.js 22.x desde 22.12 es compatible con ambos proyectos.
+
+Desde la raíz:
+
+```bash
+cd api
+npm ci
+```
+
+Crea `api/.env` con valores locales:
 
 ```dotenv
-PORT=3000
+PORT=8080
 PUBLIC_PATH=public
 JWT_SEED=reemplazar_por_un_secreto_largo_y_aleatorio
 POSTGRES_URL=postgresql://postgres:TU_PASSWORD@localhost:5432/ambienta_pos
+NODE_ENV=development
 
-# Opcional: orígenes adicionales separados por comas
+# Opcional: ampliar los orígenes CORS, separados por comas
 ALLOWED_ORIGINS=http://localhost:5173
 
-# Para Docker Compose
+# Solo para Docker Compose
 POSTGRES_USER=postgres
 POSTGRES_PASSWORD=TU_PASSWORD
 POSTGRES_DB=ambienta_pos
 ```
 
-| Variable | Uso |
+| Variable | Comportamiento |
 | --- | --- |
-| `PORT` | Puerto HTTP obligatorio. |
-| `PUBLIC_PATH` | Carpeta de archivos estáticos; valor predeterminado `public`, relativo al directorio de ejecución. |
-| `JWT_SEED` | Secreto obligatorio para firmar y verificar JWT. |
-| `POSTGRES_URL` | Conexión usada tanto por Prisma CLI como por la aplicación. |
-| `ALLOWED_ORIGINS` | Amplía la lista CORS del adaptador. |
-| `POSTGRES_USER` | Usuario de PostgreSQL en Compose; predeterminado `postgres`. |
-| `POSTGRES_PASSWORD` | Contraseña obligatoria para Compose. |
-| `POSTGRES_DB` | Base de datos en Compose; predeterminado `lacatracha` si se omite. |
+| `PORT` | Puerto HTTP obligatorio. `8080` coincide con el proxy de desarrollo de la app. |
+| `PUBLIC_PATH` | Directorio estático; por defecto `public`, relativo al directorio desde el que se ejecuta la API. |
+| `JWT_SEED` | Secreto obligatorio para firmar y verificar tokens. |
+| `POSTGRES_URL` | Cadena usada por Prisma CLI y por el pool de la aplicación. |
+| `ALLOWED_ORIGINS` | Agrega orígenes a la lista CORS. |
+| `NODE_ENV` | Entorno de ejecución; Compose lo establece en `production`. |
+| `POSTGRES_USER` | Usuario de Compose; predeterminado `postgres`. |
+| `POSTGRES_PASSWORD` | Contraseña obligatoria de Compose. |
+| `POSTGRES_DB` | Base de Compose; predeterminada `lacatracha` si se omite. |
 
-`DATABASE_URL` no se utiliza en la configuración actual. La plantilla local `.env.template`, si está disponible, solo contiene `PORT`, `PUBLIC_PATH` y `JWT_SEED`; la conexión PostgreSQL debe añadirse. No está versionada actualmente.
+`DATABASE_URL` no se usa. Codifica los caracteres reservados de las credenciales en `POSTGRES_URL`. El archivo `.env` está ignorado por Git; la plantilla `.env.template` puede existir localmente, pero no está versionada y no sustituye la configuración completa anterior.
 
-## Instalación y ejecución
+### Comandos
 
-Desde la raíz del repositorio:
-
-```bash
-cd api
-# Crear y configurar .env como se indica arriba
-npm ci
-npm run dev
-```
-
-Prerrequisitos: Node.js >= 20.19, npm y una base PostgreSQL preparada con un esquema compatible. La API queda disponible en `http://localhost:3000/api`.
-
-### Preparación de la base de datos
-
-El repositorio contiene `prisma/schema.prisma`, pero **no incluye migraciones, seed ni scripts SQL de inicialización**. `npm ci` genera el cliente Prisma; no prepara PostgreSQL. `prisma migrate deploy` no puede reconstruir la base con el contenido versionado actual.
-
-Para una instalación completa se necesita una base ya preparada o restaurar un respaldo/SQL compatible obtenido por separado. El esquema contiene campos calculados mediante expresiones SQL y referencias a restricciones adicionales; también hay dependencias de funciones y triggers que deben existir en PostgreSQL:
-
-- `fn_recalcular_stock_minimo_global()` para recalcular el stock mínimo.
-- Triggers de auditoría que lean `app.usuario_id`, si se quiere registrar el usuario de cada operación. La aplicación propaga ese contexto, pero no incluye la creación de los triggers.
-
-El primer usuario debe provisionarse por separado con una contraseña hasheada compatible con bcrypt. No hay seed ni ruta pública de registro para crear ese usuario inicial.
-
-### Scripts disponibles
-
-Todos se ejecutan desde `api/`.
+Ejecuta desde `api/`:
 
 | Comando | Efecto |
 | --- | --- |
-| `npm run dev` | Ejecuta `src/app.ts` con recarga mediante ts-node-dev. |
-| `npm run prisma:generate` | Genera el cliente Prisma. |
+| `npm ci` | Instala dependencias y genera Prisma mediante `postinstall`. |
+| `npm run dev` | Inicia `src/app.ts` con recarga de ts-node-dev. |
+| `npm run prisma:generate` | Genera el cliente en `src/generated/prisma/`. |
 | `npm run build` | Genera Prisma, limpia `dist/` y compila TypeScript. |
-| `npm start` | Ejecuta `dist/app.js`; requiere compilación previa. |
-| `postinstall` | Genera Prisma automáticamente al instalar. |
-
-No hay scripts de pruebas ni lint definidos en `package.json`.
-
-## Docker
-
-Desde `api/`, con `.env` configurado:
+| `npm start` | Ejecuta `dist/app.js`; requiere build previo. |
 
 ```bash
-# Solo PostgreSQL
-docker compose up -d postgres-db
-
-# Aplicación y base de datos
-docker compose up -d --build
-
-# Consultar logs
-docker compose logs -f
-
-# Detener servicios
-docker compose down
+npm run dev
 ```
 
-Compose levanta `postgres-db` en el puerto 5432 y `la-catracha-app` en el 3000. Los nombres `la-catracha-app` y el valor predeterminado `lacatracha` son nombres heredados presentes en la configuración. La base se conserva en el volumen `postgres-data`.
+Con `PORT=8080`, la base REST es `http://localhost:8080/api` y WebSocket se encuentra en `ws://localhost:8080/ws/autorizaciones`. Inicia el proceso desde `api/` para que `.env` y `PUBLIC_PATH` se resuelvan como en estos ejemplos.
 
-La aplicación recibe `POSTGRES_URL` con el host interno `postgres-db`. Compose fija `PORT=3000`, `PUBLIC_PATH=public` y `NODE_ENV=production`; exige `POSTGRES_PASSWORD` y `JWT_SEED`. La base recién creada queda vacía: debe prepararse por separado antes de usar las rutas que consultan datos. El arranque del contenedor no ejecuta migraciones ni espera a que PostgreSQL esté listo mediante un healthcheck.
+No hay scripts de pruebas ni de lint definidos en el paquete.
 
-El servidor puede servir un frontend externo en `public/`, con fallback a `index.html` para rutas fuera de `/api`. No se incluye ese frontend en el repositorio.
+## Base de datos y Prisma
+
+El esquema está en [prisma/schema.prisma](prisma/schema.prisma) y la configuración CLI en [prisma.config.ts](prisma.config.ts). El cliente usa el generador `prisma-client`, `PrismaPg` y un pool `pg` compartido.
+
+**El repositorio no incluye migraciones, seed ni SQL de inicialización.** `npm ci` y `prisma generate` generan código; no crean tablas. `prisma migrate deploy` no puede reconstruir la base a partir del contenido versionado actual. Se necesita una base ya preparada o un respaldo/SQL compatible obtenido por separado.
+
+El modelo incluye valores calculados con `dbgenerated`, restricciones de negocio y relaciones que deben coincidir con la base real. La generación del cliente por sí sola no reproduce columnas calculadas, funciones ni triggers externos. Entre las dependencias conocidas están:
+
+- `fn_recalcular_stock_minimo_global()`, invocada por la ruta de recálculo.
+- Triggers de auditoría que lean `app.usuario_id`, si se quiere registrar el autor de los cambios.
+- La infraestructura de consecutivos fiscales/comerciales que utilice la base: el checkout no los asigna explícitamente.
+
+El primer usuario debe provisionarse con una contraseña bcrypt compatible. El registro HTTP requiere JWT, por lo que una instalación vacía no puede crear el primer administrador desde el login.
+
+Después de cambiar el esquema, regenera el cliente y prepara por separado la actualización de PostgreSQL. `prisma db push` no reemplaza los objetos SQL y datos iniciales que faltan en este repositorio.
+
+### Familias de datos
+
+| Área | Modelos principales |
+| --- | --- |
+| Catálogo | `productos`, `categoriasproductos`, `unidadesmedida`, `imagenesproductos`. |
+| Clientes y ventas | `clientes`, `categoriasclientes`, `ventas`, `ventaproductos`, `ventapagos`, `devoluciones`. |
+| Compras | `proveedores`, `compras`, `comprasproductos`, `ordenescompra`, `ordenescompraproductos`, `costosadicionalescompras`. |
+| Inventario | `movimientosinventario`, `movimientoscompras`, `movimientoventas`, `mermas`. |
+| Finanzas y caja | `sesiones`, `cuentasporcobrar`, `abonos`, `cuentasporpagar`, `pagos`, `pagocuentasporpagar`, `gastos`, `pagogastos`. |
+| Entregas | `deliveries`, `repartidores`, `ventadelivery`. |
+| Administración | `usuarios`, `empresa`, `autorizaciones`, `auditoria`. |
+| Personal | Empleados, departamentos, cargos, historial salarial y asistencia. |
+| Nómina y beneficios | Períodos/detalles de planilla, deducciones, horas extra, anticipos, préstamos/cuotas, vacaciones, acumulados, liquidaciones y parámetros. |
+
+El nombre histórico `acumuladodecimoprimermes` se conserva en el modelo y en la ruta; la interfaz lo presenta como décimo tercer mes.
 
 ## Autenticación y seguridad
 
-Solo `POST /api/auth/login` es público entre los endpoints HTTP implementados. Las demás rutas requieren:
+Solo `POST /api/auth/login` es público entre los endpoints REST implementados. El resto exige:
 
 ```http
 Authorization: Bearer <token>
+Content-Type: application/json
 ```
 
-Ejemplo de cuerpo de login:
+Login:
 
 ```json
 {
@@ -158,137 +164,410 @@ Ejemplo de cuerpo de login:
 }
 ```
 
-Los JWT expiran a las 8 horas por defecto. El middleware valida el token y busca el usuario en la base. Los roles definidos son `administrador`, `empleado` e `invitado`, pero **no hay restricciones por rol aplicadas a las rutas actuales**; el registro de usuarios también requiere JWT.
+También se aceptan `password` y `pswd` como alias de contraseña en el login. La respuesta contiene:
 
-El servidor usa Helmet, CORS, un límite de cuerpo de 1 MB y un límite de 10 intentos de login por IP cada 15 minutos. Existe un adaptador de límite global, pero no está aplicado en el servidor.
+```json
+{
+  "token": "<jwt>",
+  "user": {
+    "id": 1,
+    "nombreusuario": "usuario_existente",
+    "rol": "administrador"
+  }
+}
+```
 
-## Rutas HTTP disponibles
+Los tokens expiran a las ocho horas por defecto. El middleware verifica el JWT, busca al usuario y propaga su ID al contexto de auditoría. Los roles definidos son `administrador`, `empleado` e `invitado`, pero **las rutas actuales no aplican restricciones generales por rol**. Esto incluye registro, edición de usuarios y aprobación de autorizaciones. El gateway WebSocket acepta suscripciones sin validar JWT.
 
-### Usuarios
+La creación de usuarios recibe `nombreusuario`, `contrasena` o `contrasenahash`, y un rol opcional. Aunque se llame `contrasenahash`, ese campo de entrada recibe una contraseña que el caso de uso hashea. La contraseña debe tener al menos ocho caracteres, mayúscula, minúscula, número y carácter especial.
 
-| Método | Ruta | Acceso |
-| --- | --- | --- |
-| POST | `/api/auth/login` | Público |
-| POST | `/api/auth/register` | JWT |
-| GET | `/api/auth/getUser` | JWT |
-| PUT | `/api/auth/updateUser/:id` | JWT |
-| DELETE | `/api/auth/deleteUser/:id` | JWT |
+El servidor configura Helmet, JSON/formularios con límite de 1 MB, `trust proxy=1` y diez intentos de login por IP cada quince minutos. Existe un limitador global, pero no está aplicado. CORS permite los orígenes locales 5173/3000/8080 y un dominio de producción declarado en el adaptador; `ALLOWED_ORIGINS` amplía la lista. También admite solicitudes sin encabezado `Origin`.
 
-### Catálogos, clientes y proveedores
-
-Cada prefijo de esta tabla ofrece `GET /`, `GET /:id`, `POST /`, `PUT /:id` y `DELETE /:id`:
-
-| Prefijo | Recurso |
-| --- | --- |
-| `/api/categoria-productos` | Categorías de productos |
-| `/api/subcategoria-productos` | Subcategorías; se almacenan como categorías con padre |
-| `/api/unidades-medida` | Unidades de medida |
-| `/api/clientes` | Clientes |
-| `/api/categorias-clientes` | Categorías de clientes |
-| `/api/proveedores` | Proveedores |
-| `/api/productos` | Productos |
-
-Rutas adicionales de productos:
-
-| Método | Ruta | Comportamiento |
-| --- | --- | --- |
-| GET | `/api/productos/search?q=texto` | Búsqueda por nombre, sin distinguir mayúsculas; hasta 20 resultados. |
-| GET | `/api/productos/barcode/:codigobarra` | Búsqueda por código de barras. |
-| GET | `/api/productos/deactivated` | Actualmente devuelve `[]`; no hay desactivación implementada. |
-| POST | `/api/productos/recalculate-stock-minimo` | Ejecuta la función SQL de recálculo. |
-
-`DELETE /api/productos/:id` elimina físicamente el producto y rechaza la operación si tiene registros vinculados.
-
-### Compras y líneas
-
-| Método | Ruta | Comportamiento |
-| --- | --- | --- |
-| GET | `/api/compras` | Listar compras activas. |
-| GET | `/api/compras/deactivated` | Listar compras anuladas. |
-| GET | `/api/compras/propuesta-global` | Propuesta global de reposición con prioridades e inversión estimada. |
-| GET | `/api/compras/propuesta/:proveedorId` | Propuesta de reposición por proveedor. |
-| GET | `/api/compras/:id` | Consultar una compra. |
-| POST | `/api/compras` | Crear la cabecera de compra. |
-| PUT | `/api/compras/:id` | Editar cabecera y, si se envían, líneas y costos adicionales. |
-| DELETE | `/api/compras/:id` | Anular y retirar el stock comprado. |
-| GET | `/api/compras-productos` | Listar líneas de compras. |
-| GET | `/api/compras-productos/compra/:compraid` | Consultar líneas por compra. |
-| POST | `/api/compras-productos` | Añadir una línea y actualizar costo/stock/movimiento. |
-
-Las propuestas usan ventas activas de las últimas tres semanas con pesos 0.5, 0.3 y 0.2. La cantidad sugerida es `max(0, ceil(promedio ponderado + stock mínimo - stock actual))`. Requieren datos históricos de ventas, aunque el módulo HTTP de ventas todavía no está implementado.
-
-### Órdenes de compra y sus productos
-
-| Método | Ruta | Comportamiento |
-| --- | --- | --- |
-| GET | `/api/ordenes-compra` | Listar órdenes con paginación y filtros opcionales `proveedorid` y `estado`. |
-| GET | `/api/ordenes-compra/:id` | Consultar cabecera, nombre del proveedor y productos de la orden. |
-| POST | `/api/ordenes-compra` | Crear cabecera para un proveedor existente. |
-| PUT | `/api/ordenes-compra/:id` | Editar proveedor, estado y fechas. |
-| DELETE | `/api/ordenes-compra/:id` | Eliminar la orden y sus líneas dentro de una transacción. |
-| GET | `/api/ordenes-compra-productos` | Listar líneas con paginación y filtro opcional `ordencompraid`. |
-| GET | `/api/ordenes-compra-productos/:ordencompraid/:productoid` | Consultar una línea por su clave compuesta. |
-| POST | `/api/ordenes-compra-productos` | Añadir un producto a una orden existente. |
-| PUT | `/api/ordenes-compra-productos/:ordencompraid/:productoid` | Editar cantidad ordenada y precio unitario. |
-| DELETE | `/api/ordenes-compra-productos/:ordencompraid/:productoid` | Eliminar una línea de la orden. |
-
-La cabecera recibe `proveedorid` y, opcionalmente, `estado`, `fechaorden` y `fechaesperada`. Por defecto usa estado `PENDIENTE` y la fecha actual; el estado recibido se normaliza a mayúsculas. El filtro `estado` no distingue mayúsculas. La respuesta identifica la orden con `id` e incluye `proveedornombre` y `productos`.
-
-Las líneas reciben `ordencompraid`, `productoid`, `cantidadordenada` mayor que cero y `preciounitario` mayor o igual que cero. Solo puede existir una línea por producto en cada orden, según la clave compuesta del esquema.
-
-Crear o editar órdenes y líneas no modifica stock ni genera movimientos de inventario. Aunque el esquema de `compras` incluye `ordencompraid`, las rutas actuales de compras no exponen su asignación ni una operación de recepción/conversión automática. La eliminación de una orden está sujeta a las relaciones existentes con compras.
-
-### Costos adicionales de compras
-
-| Método | Ruta | Comportamiento |
-| --- | --- | --- |
-| GET | `/api/costos-adicionales-compras` | Listar costos con paginación y filtro opcional `compraid`. |
-| GET | `/api/costos-adicionales-compras/:id` | Consultar un costo adicional. |
-| POST | `/api/costos-adicionales-compras` | Crear un costo para una compra existente. |
-| PUT | `/api/costos-adicionales-compras/:id` | Editar compra asociada, concepto y monto. |
-| DELETE | `/api/costos-adicionales-compras/:id` | Eliminar un costo adicional. |
-
-La creación recibe `compraid`, `concepto` y `monto` mayor o igual que cero. Estas rutas solo guardan los registros de costos: no recalculan el total de la compra, las cuentas por pagar ni el costo promedio de los productos. La edición de compras también permite reemplazar sus costos mediante `costosAdicionales`.
-
-### Inventario y movimientos de compras
-
-| Método | Ruta | Comportamiento |
-| --- | --- | --- |
-| GET | `/api/movimientos-inventario` | Listar movimientos, excluyendo los vinculados a compras o ventas anuladas. |
-| GET | `/api/movimientos-inventario/producto/:productoid` | Historial por producto. |
-| GET | `/api/movimientos-inventario/:id` | Consultar un movimiento. |
-| POST | `/api/movimientos-inventario` | Registrar un ingreso/egreso y modificar stock en una transacción. |
-| GET | `/api/movimientos-compras` | Listar relaciones entre movimientos y compras. |
-| GET | `/api/movimientos-compras/movimiento/:movimientocompraid` | Consultar relaciones por movimiento. |
-| GET | `/api/movimientos-compras/compra/:compraid` | Consultar relaciones por compra. |
-| POST | `/api/movimientos-compras` | Crear una relación. |
-| DELETE | `/api/movimientos-compras/:movimientocompraid/:compraid` | Eliminar una relación. |
-
-El stock anterior se obtiene en el servidor. Los egresos usan un decremento condicionado a stock suficiente para evitar saldos negativos. Eliminar una relación movimiento-compra no equivale a revertir stock.
+## Convenciones de respuesta
 
 ### Paginación
 
-Los listados que usan `PaginationDto` aceptan `?page=1&limit=25`; esos son los valores predeterminados. `limit=0` desactiva la paginación. Las respuestas paginadas contienen `data` y `pagination` (`page`, `limit`, `total`, `totalPages`). Las consultas por ID y los listados especiales pueden tener otro formato.
+Los listados que usan `PaginationDto` aceptan `page` y `limit`:
 
-## WebSocket de autorizaciones
+```http
+GET /api/productos?page=1&limit=25
+```
 
-Endpoint: `ws://localhost:3000/ws/autorizaciones`.
+Los valores predeterminados son página 1 y límite 25. `limit=0` devuelve todos los registros. La respuesta habitual es:
 
-| Mensaje del cliente | Respuesta / efecto |
+```json
+{
+  "data": [],
+  "pagination": {
+    "page": 1,
+    "limit": 25,
+    "total": 0,
+    "totalPages": 0
+  }
+}
+```
+
+Las consultas por relación, búsquedas, autorizaciones y algunos listados de anulados devuelven arreglos u objetos directos. No todos los endpoints comparten envoltorio. `GET /auth/getUser` lista usuarios; no es una ruta de perfil del usuario actual.
+
+Las entidades suelen exponer `id`, aunque algunos recursos mantienen claves de negocio o compuestas. Consulta la entidad y el DTO del recurso antes de integrar. Los campos `Decimal` no tienen una serialización uniforme entre todas las respuestas; el consumidor debe normalizar los importes según el contrato recibido.
+
+### Errores
+
+El formato más habitual es `{ "error": "mensaje" }`. Se utilizan `400` para validación o negocio, `401` para autenticación y `429` para el límite de login. Algunos controladores devuelven `404` en consultas concretas y `500` en errores inesperados. No existe un middleware único que uniformice todos los códigos y cuerpos.
+
+## Rutas HTTP
+
+Todas las rutas siguientes son relativas a **`/api`**. Su montaje está en [src/presentation/routes.ts](src/presentation/routes.ts).
+
+### Usuarios
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| POST | `/auth/login` | Login público. |
+| POST | `/auth/register` | Crear usuario; requiere JWT. |
+| GET | `/auth/getUser` | Listar usuarios. |
+| PUT | `/auth/updateUser/:id` | Editar usuario, contraseña y rol. |
+| DELETE | `/auth/deleteUser/:id` | Eliminar usuario. |
+
+### Recursos con CRUD convencional
+
+Cada prefijo de esta tabla ofrece `GET /`, `GET /:id`, `POST /`, `PUT /:id` y `DELETE /:id`. Los filtros indicados corresponden al listado y se agregan a la paginación.
+
+| Prefijo | Recurso / filtros |
 | --- | --- |
-| `{"type":"subscribe_admin"}` | Suscribe la conexión y responde `subscribed` con rol `admin`. |
-| `{"type":"subscribe_empleado","autorizacionid":1}` | Suscribe la conexión a una autorización y responde `subscribed`. |
-| `{"type":"ping"}` | Responde `{"type":"pong"}`. |
+| `/categoria-productos` | Categorías; al crear, enviar `nombre` y `descripcion` como texto. |
+| `/subcategoria-productos` | Categorías con padre; filtro `categoriaid`. |
+| `/unidades-medida` | Unidades de medida. |
+| `/clientes` | Clientes. |
+| `/categorias-clientes` | Categorías de clientes. |
+| `/proveedores` | Proveedores. |
+| `/repartidores` | Repartidores. |
+| `/deliveries` | Entregas; además `GET /deactivated`. |
+| `/gastos` | Gastos. |
+| `/pagos` | Pagos; además `GET /deactivated`. |
+| `/cuentas-por-cobrar` | Cuentas de clientes; además `GET /deactivated`. |
+| `/cuentas-por-pagar` | Cuentas de compras; además `GET /deactivated`. |
+| `/venta-pagos` | Pagos de ventas; filtro `ventaid`. |
+| `/costos-adicionales-compras` | Costos; filtro `compraid`. |
+| `/ordenes-compra` | Órdenes; filtros `proveedorid`, `estado`. |
+| `/imagenes-productos` | URL de imagen y marca principal; filtro `productoid`, sin carga binaria de archivos. |
+| `/devoluciones` | Devoluciones; filtros `ventaid`, `productoid`; además `POST /procesar`. |
+| `/mermas` | Mermas; filtros `productoid`, `usuarioid`. |
+| `/empleados` | Empleados; filtros `cargoid`, `estado`; además `GET /deactivated`. |
+| `/departamentos-empleados` | Departamentos. |
+| `/cargos-empleados` | Cargos; filtro `departamentoid`. |
+| `/historial-salarios` | Historial; filtro `empleadoid`. |
+| `/periodos-planilla` | Períodos; filtro `estado`. |
+| `/planilla-detalle` | Detalles; filtros `periodoid`, `empleadoid`. |
+| `/planilla-deducciones` | Deducciones; filtro `detalleid`, con alias `planilladetalleid`. |
+| `/planilla-horas-extra` | Horas extra; filtro `detalleid`, con alias `planilladetalleid`. |
+| `/anticipos-salario` | Anticipos; filtros `empleadoid`, `mes`, `anio`, `estado`. |
+| `/prestamos-empleados` | Préstamos; filtros `empleadoid`, `estado`. |
+| `/cuotas-prestamos` | Cuotas; filtros `prestamoid`, `estado`. |
+| `/solicitudes-vacaciones` | Solicitudes; filtros `empleadoid`, `estado`. |
+| `/acumulado-vacaciones` | Acumulados; filtros `empleadoid`, `periodoid`. |
+| `/acumulado-decimo-primer-mes` | Acumulado del décimo; filtros `empleadoid`, `periodoid`. |
+| `/acumulado-indemnizacion` | Acumulados; filtros `empleadoid`, `periodoid`. |
+| `/liquidaciones-empleados` | Liquidaciones; filtros `empleadoid`, `estado`. |
+| `/pagos-beneficios` | Pagos; filtros `empleadoid`, `tipobeneficio`. |
+| `/registro-asistencia` | Asistencia; filtros `empleadoid`, `fechainicio`, `fechafin`. |
+| `/configuracion-inss` | Configuración; filtro `activo`. |
+| `/tabla-tramo-ir` | Tramos; filtro `activo`. |
+| `/feriados-nacionales` | Feriados; filtro `anio`. |
 
-El gateway tiene métodos para emitir `NUEVA_SOLICITUD` y `ESTADO_ACTUALIZADO`, pero no hay controladores REST que los invoquen actualmente. Las suscripciones WebSocket no validan JWT ni roles. El flujo completo de solicitar, aprobar, rechazar y validar autorizaciones sigue pendiente.
+`DELETE` no significa lo mismo en todos los recursos: puede eliminar físicamente, desactivar o anular con efectos sobre saldos/stock. Revisa el datasource antes de usarlo como borrado genérico.
 
-## Alcance pendiente y limitaciones
+### Productos e inventario
 
-- No existen rutas HTTP de ventas, caja, cuentas por cobrar, pagos de cuentas por pagar, deliveries, gastos, reportes, empresa, devoluciones, mermas ni recursos humanos/planilla, aunque hay modelos de base de datos para esas áreas.
-- Falta la recepción/conversión automática de órdenes a compras y la actualización automática de totales/costos a partir del CRUD de costos adicionales.
-- La edición/anulación de compras opera sobre cuentas por pagar internamente; eso no constituye un módulo independiente de gestión de pagos.
-- Faltan permisos por rol y autenticación de las suscripciones WebSocket.
-- Faltan migraciones/SQL de preparación, seed del usuario inicial y pruebas automatizadas.
-- No se incluye el frontend ni una definición OpenAPI/Swagger.
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| GET | `/productos` | Listado paginado. |
+| GET | `/productos/:id` | Producto por ID. |
+| GET | `/productos/search?q=texto` | Nombre sin distinguir mayúsculas; máximo 20 resultados. |
+| GET | `/productos/barcode/:codigobarra` | Producto por código de barras. |
+| GET | `/productos/deactivated` | Actualmente devuelve `[]`. |
+| POST | `/productos` | Crear producto. |
+| PUT | `/productos/:id` | Editar producto. |
+| DELETE | `/productos/:id` | Eliminar físicamente; rechaza registros vinculados. |
+| POST | `/productos/recalculate-stock-minimo` | Ejecutar función SQL de stock mínimo. |
+| GET | `/movimientos-inventario` | Historial paginado. |
+| GET | `/movimientos-inventario/:id` | Movimiento por ID. |
+| GET | `/movimientos-inventario/producto/:productoid` | Historial de un producto. |
+| POST | `/movimientos-inventario` | Movimiento manual con ajuste de stock. |
 
-La existencia de un modelo Prisma, una entidad o un adaptador no implica que el módulo completo esté disponible por HTTP. La referencia de rutas corresponde a `src/presentation/routes.ts` y los routers de cada módulo.
+Las subcategorías se almacenan en `categoriasproductos` mediante una relación con la categoría padre.
+
+### Ventas, caja y lecturas de detalle
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| GET | `/ventas` | Ventas activas, incluidas cotizaciones. |
+| GET | `/ventas/deactivated` | Ventas anuladas. |
+| GET | `/ventas/:id` | Consultar venta. |
+| POST | `/ventas` | Crear cabecera; no sustituye el checkout completo. |
+| POST | `/ventas/checkout` | Guardar el cobro completo en una transacción. |
+| PUT | `/ventas/:id` | Editar y facturar una cotización mediante cambio de tipo. |
+| DELETE | `/ventas/:id` | Anular y restituir stock según reglas de negocio. |
+| GET | `/venta-productos` | Listar detalles. |
+| GET | `/venta-productos/venta/:ventaid` | Líneas de una venta. |
+| GET | `/venta-delivery` | Listar relaciones venta/entrega. |
+| GET | `/venta-delivery/venta/:ventaid` | Entregas de una venta. |
+| GET | `/venta-delivery/delivery/:deliveryid` | Ventas de una entrega. |
+| GET | `/sesiones` | Listar sesiones de caja. |
+| GET | `/sesiones/active` | Sesión abierta del usuario autenticado. |
+| GET | `/sesiones/:id` | Consultar sesión. |
+| GET | `/sesiones/:id/reporte-cierre` | Reporte de movimientos y cierre. |
+| POST | `/sesiones` | Abrir caja con `montoinicial`; el usuario se toma del JWT. |
+| PUT | `/sesiones/close/:id` | Cerrar con `montofinalfisico`. |
+| GET | `/abonos` | Listar abonos. |
+| GET | `/abonos/cuenta/:cuentaid` | Abonos de una cuenta. |
+| GET | `/abonos/:id` | Consultar abono. |
+| POST | `/abonos` | Crear abono. |
+| PUT | `/abonos/:id` | Editar abono. |
+| DELETE | `/abonos/:id` | Eliminar abono. |
+
+### Compras y órdenes
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| GET | `/compras` | Compras activas. |
+| GET | `/compras/deactivated` | Compras anuladas. |
+| GET | `/compras/propuesta-global` | Reposición global con prioridades e inversión estimada. |
+| GET | `/compras/propuesta/:proveedorId` | Reposición por proveedor. |
+| GET | `/compras/:id` | Consultar compra. |
+| POST | `/compras` | Crear cabecera. |
+| PUT | `/compras/:id` | Editar cabecera y, opcionalmente, líneas/costos. |
+| DELETE | `/compras/:id` | Anular y retirar stock comprado. |
+| GET | `/compras-productos` | Listar líneas. |
+| GET | `/compras-productos/compra/:compraid` | Líneas de una compra. |
+| POST | `/compras-productos` | Crear línea, actualizar costo y aumentar stock. |
+| GET | `/ordenes-compra-productos` | Listar líneas; filtro `ordencompraid`. |
+| GET | `/ordenes-compra-productos/:ordencompraid/:productoid` | Consultar línea por clave compuesta. |
+| POST | `/ordenes-compra-productos` | Añadir producto. |
+| PUT | `/ordenes-compra-productos/:ordencompraid/:productoid` | Editar cantidad y precio. |
+| DELETE | `/ordenes-compra-productos/:ordencompraid/:productoid` | Eliminar línea. |
+
+### Relaciones de movimientos y pagos
+
+Los prefijos siguientes exponen `GET /` y `POST /`, además de estas rutas por relación:
+
+| Prefijo | Consultas GET adicionales | DELETE |
+| --- | --- | --- |
+| `/movimientos-compras` | `/movimiento/:movimientocompraid`, `/compra/:compraid` | `/:movimientocompraid/:compraid` |
+| `/movimientos-ventas` | `/movimiento/:movimeintoventaid`, `/venta/:ventaid` | `/:movimeintoventaid/:ventaid` |
+| `/pago-cuentas-por-pagar` | `/pago/:pagoid`, `/cuenta-pagar/:cuentapagarid` | `/:pagoid/:cuentapagarid` |
+| `/pago-gastos` | `/pago/:pagoid`, `/gasto/:gastoid` | `/:pagoid/:gastoid` |
+
+`movimeintoventaid` conserva la grafía existente en el código y en el modelo.
+
+### Empresa y auditoría
+
+| Método | Ruta | Uso |
+| --- | --- | --- |
+| GET | `/empresa` | Listar empresas. |
+| POST | `/empresa` | Crear empresa y parámetros. |
+| PUT | `/empresa/:id` | Editar, incluida `tasacambio`. |
+| GET | `/auditoria` | Listar; filtros `tabla`, `usuarioid`. |
+| GET | `/auditoria/:id` | Consultar registro. |
+| POST | `/auditoria` | Crear registro explícito. |
+
+### Reportes
+
+Todos usan `GET /reportes/<nombre>`. Los reportes de rango aceptan `fechaInicio` y `fechaFin`, en `YYYY-MM-DD` o fecha/hora ISO.
+
+| Nombre | Parámetros / comportamiento |
+| --- | --- |
+| `utilidad-diaria` | Rango; por defecto el día actual. |
+| `utilidad-producto` | Rango; por defecto el día actual. |
+| `estado-resultados` | Rango y comparativo anterior. |
+| `flujo-caja` | Rango; `agrupar=dia` o `mes`. |
+| `antiguedad-saldos` | `tipo=cxc` o `cxp`; `fechaCorte`. |
+| `libro-ventas` | Rango. |
+| `ventas-periodo` | Rango. |
+| `top-clientes` | Rango; `limite`, predeterminado 20, máximo 500. |
+| `ventas-categoria` | Rango. |
+| `devoluciones` | Rango. |
+| `productos-por-vencer` | `dias`, predeterminado 60, entre 1 y 730. |
+| `valorizacion-inventario` | `dias`, predeterminado 90, entre 7 y 730. |
+| `inventario-sin-movimiento` | `dias`, predeterminado 60, entre 7 y 730. |
+| `mermas` | Rango. |
+| `costo-laboral` | Rango. |
+| `pasivo-laboral` | Sin rango; situación acumulada. |
+| `bitacora` | Rango; `usuarioid`, `tabla`, `operacion`, `limite` (300 por defecto, máximo 2000). |
+
+Los rangos de gestión usan por defecto el primer día del mes hasta hoy. Las fechas sin hora se interpretan con límites del día en Nicaragua, UTC-6. Las consultas de gestión consideran ventas vigentes que no sean cotizaciones; no todos los consumidores de `/ventas` aplican ese filtro.
+
+## Flujos de negocio
+
+### Checkout de ventas
+
+Ejemplo de `POST /api/ventas/checkout`, con IDs existentes, una sesión abierta y stock suficiente:
+
+```json
+{
+  "sesionid": 1,
+  "tipoventa": "CONTADO",
+  "lugarventa": "NORMAL",
+  "clienteid": null,
+  "tipofactura": null,
+  "descuentofactura": 0,
+  "lineas": [
+    { "productoid": 1, "cantidad": 2, "preciounitario": 50, "descuento": 0 }
+  ],
+  "pagos": [
+    { "metodopago": "EFECTIVO", "monto": 100 }
+  ]
+}
+```
+
+- `tipoventa`: `CONTADO`, `CREDITO` o `COTIZACION`; `lugarventa`: `NORMAL` o `DELIVERY`.
+- Las líneas no pueden repetir producto. Cantidad positiva, precio no negativo y descuento como **monto**, limitado al importe de la línea.
+- El total se calcula desde las líneas, menos `descuentofactura`, más el costo de delivery; no se acepta un total del cliente como fuente del cálculo.
+- Una venta al crédito requiere cliente y `fechavencimiento`, y crea la cuenta por cobrar. El DTO actual también exige pagos para crédito; el consumidor debe seguir ese contrato.
+- Una cotización no requiere pagos y no descuenta stock. Su tipo de factura queda nulo.
+- Delivery requiere `{ "repartidorid": 1, "direccionentrega": "Dirección", "costo": 20 }` en `delivery`.
+- El checkout crea venta, detalles, pagos, cuenta por cobrar y entrega aplicables en una transacción. Un error revierte esa transacción.
+
+Los métodos se normalizan a `EFECTIVO`, `TRANSFERENCIA` o `TARJETA`; los alias bancarios conservan banco/referencia. La interfaz convierte NIO/USD antes de enviar los importes. No hay una clave de idempotencia para repetir un checkout exitoso.
+
+Al facturar una cotización, `PUT /ventas/:id` descuenta el stock de sus líneas. Anular una venta restituye cantidades y anula cuentas por cobrar; si tiene devoluciones, la operación se rechaza hasta resolverlas. Una venta facturada no puede volver a cotización mediante edición.
+
+### Compras y costo promedio
+
+`POST /compras` recibe `proveedorid`, `total`, `metodopago`, `tipocompra` y opcionalmente `facturaproveedor`, `estado`, `fecha`. Solo crea la cabecera. Cada `POST /compras-productos` recibe `compraid`, `productoid`, `cantidad` y opcionalmente `preciounitario`, `descuento`.
+
+Cada línea se procesa en una transacción: valida producto y compra activa, guarda el detalle, actualiza costo promedio, aumenta stock y registra el movimiento y su relación con la compra.
+
+```text
+nuevo costo = (stock anterior × costo anterior + cantidad recibida × precio unitario)
+              / (stock anterior + cantidad recibida)
+```
+
+Con stock anterior no positivo, se usa el precio recibido. El costo se redondea a dos decimales. El cálculo usa el precio unitario y no prorratea automáticamente descuentos ni costos adicionales.
+
+Editar una compra puede reemplazar `lineas` y `costosAdicionales`, ajustar stock por diferencia y actualizar cuentas por pagar relacionadas. Anularla retira las cantidades recibidas; si el stock actual no alcanza, la transacción se rechaza.
+
+El CRUD independiente de costos adicionales recibe `compraid`, `concepto` y `monto` no negativo. Solo guarda registros: no recalcula automáticamente total de compra, cuentas por pagar ni costo promedio.
+
+### Órdenes y reposición
+
+Una orden recibe `proveedorid` y opcionalmente `estado`, `fechaorden`, `fechaesperada`. Parte de `PENDIENTE`; los estados se normalizan a mayúsculas. Sus líneas reciben `ordencompraid`, `productoid`, `cantidadordenada` positiva y `preciounitario` no negativo, con una línea por producto según la clave compuesta.
+
+Las órdenes no modifican stock. La app puede cargarlas en una nueva compra y después marcarlas recibidas, mediante varias llamadas. El esquema de compras tiene `ordencompraid`, pero el DTO de creación aún no lo persiste; no existe un endpoint atómico de recepción/conversión.
+
+Las propuestas de reposición usan ventas activas de las últimas tres semanas con pesos 0.5, 0.3 y 0.2:
+
+```text
+sugerido = max(0, ceil(promedio semanal ponderado + stock mínimo - stock actual))
+```
+
+La propuesta global agrega prioridades e inversión estimada. El recálculo de stock mínimo depende de la función SQL externa indicada arriba.
+
+### Inventario, mermas y devoluciones
+
+Los egresos usan decrementos condicionados al stock disponible para evitar saldos negativos; los ingresos usan incrementos atómicos. Los helpers toman el stock anterior en el servidor.
+
+El movimiento manual recibe `productoid`, `tipomovimiento`, `cantidad`, `motivo`. Para evitar ambigüedad usa `INGRESO` o `EGRESO`: aunque el DTO reconoce más alias/tipos, el datasource actual solo trata `INGRESO` como entrada y convierte los demás a egreso usando el valor absoluto de la cantidad. Usa los módulos específicos para devoluciones y mermas.
+
+`POST /devoluciones/procesar` procesa varias líneas y, opcionalmente, un cambio. Valida que pertenezcan a una venta vigente, limita la cantidad a lo pendiente de devolver, restaura stock, aplica primero la devolución contra deuda y registra el reembolso restante. Un cambio genera una venta nueva. Reembolsos y cambios requieren una caja abierta. El flujo se ejecuta en una transacción.
+
+Las mermas registran pérdida de inventario y contemplan recuperación en un producto destino según los datos enviados. Consulta sus DTOs antes de construir el cuerpo.
+
+### Caja, cuentas y recursos humanos
+
+La apertura de caja toma el usuario del JWT y el cierre recibe el monto físico. El cálculo de caja considera las operaciones según su tipo; las notas de crédito por devoluciones reducen deuda sin contarse como efectivo recibido.
+
+Los pagos, relaciones de pagos, abonos y cuentas tienen endpoints separados. No asumas que crear un registro de relación equivale a ejecutar una liquidación completa: revisa las actualizaciones de saldo del datasource y el flujo de la app.
+
+Los recursos de personal y nómina exponen CRUD y filtros. Parte del cálculo de planilla, acumulados y sincronización de préstamos/cuotas se coordina desde el frontend. Consumir solo un endpoint de cuota no ejecuta automáticamente todo ese flujo.
+
+## Autorizaciones y WebSocket
+
+| Método | Ruta bajo `/api` | Uso |
+| --- | --- | --- |
+| POST | `/autorizaciones` | Crear solicitud con `accion` y `detalle`; usuario del JWT. |
+| GET | `/autorizaciones/pendientes` | Listar pendientes. |
+| GET | `/autorizaciones/:id/estado` | Consultar estado. |
+| PUT | `/autorizaciones/:id/aprobar` | Aprobar y generar código de seis dígitos. |
+| PUT | `/autorizaciones/:id/rechazar` | Rechazar. |
+| POST | `/autorizaciones/validar` | Validar `codigo` y, opcionalmente, `accion`. |
+
+El código debe pertenecer a una solicitud aprobada creada durante el último día; validarlo la marca `USADO`. No hay un middleware general que exija ese código automáticamente a todas las operaciones de negocio: la app integra la validación en las acciones correspondientes.
+
+El canal comparte puerto con HTTP en `/ws/autorizaciones`. Mensajes JSON enviados por el cliente:
+
+```json
+{ "type": "subscribe_admin" }
+```
+
+```json
+{ "type": "subscribe_empleado", "autorizacionid": 123 }
+```
+
+```json
+{ "type": "ping" }
+```
+
+El servidor responde con `subscribed` o `pong`. Notifica `NUEVA_SOLICITUD` a los administradores suscritos y `ESTADO_ACTUALIZADO` al solicitante, incluyendo `autorizacionid`, `estado` y, si se aprobó, `codigo`.
+
+Las suscripciones viven en memoria del proceso. El gateway mantiene un cliente por ID de autorización y no autentica el rol declarado en el mensaje. La app usa el origen de la página para conectarse; un proxy debe soportar el upgrade WebSocket.
+
+## Auditoría
+
+El middleware guarda el ID autenticado en `AsyncLocalStorage`. El pool propaga el usuario a PostgreSQL con `set_config('app.usuario_id', ...)` cuando cambia el usuario asociado a la conexión. Los triggers externos pueden leer ese valor para registrar al autor.
+
+La presencia del contexto no crea los triggers ni garantiza auditoría si la base no los tiene. También existen los endpoints de `auditoria` y el reporte de `bitacora` para consultar los registros disponibles.
+
+## Docker
+
+Desde `api/`, configura al menos `POSTGRES_PASSWORD` y `JWT_SEED` en `.env`. Define `POSTGRES_DB` para evitar el nombre heredado predeterminado:
+
+```bash
+# Solo PostgreSQL
+docker compose up -d postgres-db
+
+# API y base
+docker compose up -d --build
+
+# Logs y estado
+docker compose logs -f
+docker compose ps
+
+# Detener; conserva el volumen de datos
+docker compose down
+```
+
+Compose levanta `postgres-db` en 5432 y `la-catracha-app` en 3000. Los nombres `la-catracha-app` y `lacatracha` son heredados de la configuración. Los datos se guardan en `postgres-data`.
+
+La API recibe una `POSTGRES_URL` interna con host `postgres-db`; Compose fija `PORT=3000`, `PUBLIC_PATH=public` y `NODE_ENV=production`. El archivo actual no transmite `ALLOWED_ORIGINS` al servicio. La base inicial queda sin el esquema de negocio; no se ejecutan migraciones ni seed, y `depends_on` no sustituye un healthcheck de disponibilidad.
+
+El Dockerfile solo usa el contexto de `api/`, instala dependencias y compila el backend. Para incluir el frontend, compílalo por separado y coloca los archivos en `api/public/` antes de construir la imagen. No hay un paso que construya `app/` automáticamente.
+
+## Servir el frontend y desplegar
+
+Express sirve `PUBLIC_PATH` y responde con `index.html` para rutas ajenas a `/api`. Una API sin frontend puede atender sus endpoints aunque no tenga ese archivo; abrir una ruta de la app requiere que exista el build.
+
+Para servir el build local sin copiarlo, configura `PUBLIC_PATH=../app/dist` al iniciar desde `api/`. Para empaquetarlo en el contenedor actual, usa `public/` dentro del contexto de la API. Revisa antes la inconsistencia de la consulta de caja explicada en [la guía de la app](../app/README.md#conexión-con-la-api).
+
+En un despliegue tras proxy, configura HTTP/WebSocket, el origen de la app, `POSTGRES_URL`, el secreto JWT y el directorio estático según el entorno. El proceso actual escucha HTTP; HTTPS puede terminar en el proxy de alojamiento.
+
+## Verificación y problemas frecuentes
+
+Para cambios del backend, ejecuta `npm run build`. Para pruebas funcionales usa una base de desarrollo preparada y verifica login, apertura de caja, compra, venta, efectos en stock/saldos y anulaciones. Los identificadores de los ejemplos son ilustrativos y deben reemplazarse por registros existentes.
+
+| Síntoma | Revisión |
+| --- | --- |
+| Falta `PORT` o `JWT_SEED` | `.env` en `api/` y directorio de ejecución. |
+| Falta el cliente Prisma | `npm run prisma:generate`; no editar `src/generated/prisma/` manualmente. |
+| Conexión PostgreSQL fallida | `POSTGRES_URL`, servicio disponible, host y credenciales. |
+| Tabla/columna inexistente | Compatibilidad de la base con `schema.prisma`; instalar npm no prepara el esquema. |
+| Función de stock mínimo inexistente | SQL externo de `fn_recalcular_stock_minimo_global()`. |
+| `401` | JWT Bearer vigente y usuario existente. |
+| `429` al entrar | Límite de diez solicitudes de login por IP en quince minutos. |
+| Origen CORS rechazado | Lista del adaptador y `ALLOWED_ORIGINS`. |
+| App local sin conexión | Vite apunta a 8080; Compose publica 3000. |
+| Falla una ruta React al recargar | Build en `PUBLIC_PATH` y `index.html` disponible. |
+| Stock insuficiente al vender/anular compra | Existencias actuales y movimientos previos. |
+| Compra parcialmente registrada | Revisar cabecera, líneas, costos y cuenta: el alta completa usa varias solicitudes. |
+
+Al extender un recurso, actualiza DTO, caso de uso, contratos, persistencia, entidad, controlador/ruta y esta referencia según corresponda. Los cambios de stock deben conservar las transacciones y los helpers compartidos.
